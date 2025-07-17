@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Master\Plotting;
 use App\Models\Profil\Datadiri;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -40,6 +41,7 @@ class LoginController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
         // Validasi input
         $request->validate([
             'identifier' => 'required',
@@ -49,6 +51,7 @@ class LoginController extends Controller
         $identifier = $request->identifier;
 
         // Cek apakah input adalah nomor HP atau username
+        $credentials = [];
         if (is_numeric($identifier)) {
             $identifier = $this->formatPhoneNumber($identifier);
             $credentials = ['no_hp' => $identifier, 'password' => $request->password];
@@ -63,21 +66,28 @@ class LoginController extends Controller
             return redirect()->back()->withErrors(['identifier' => 'No. Handphone atau Username belum terdaftar. Silahkan Registrasi dahulu!'])->withInput();
         }
 
-        // Cek autentikasi
-        if (Auth::attempt($credentials, $request->has('remember'))) {
+        // Cek autentikasi dengan "Remember Me"
+        $remember = $request->has('remember');
+        if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
+
+            // Simpan identifier ke cookie jika "Remember Me" dicentang
+            if ($remember) {
+                Cookie::queue('identifier', $identifier, 60 * 24 * 30); // 30 hari
+            } else {
+                Cookie::queue(Cookie::forget('identifier'));
+            }
 
             // Redirect berdasarkan role
             switch (Auth::user()->role) {
                 case 'superadmin':
                     return redirect()->route('superadmin.dashboard');
-                case 'petugas':
-                    // Cek apakah identitas sudah diisi
-                    $identitas = Datadiri::where('id_user', Auth::user()->id)->first();
+                case 'kolektor':
+                    $identitas = Plotting::where('id_user', Auth::user()->id)->first();
                     if (!$identitas) {
-                        return redirect()->route('petugas.identitas.create')->with('info', 'Silakan lengkapi data identitas Anda.');
+                        return redirect()->route('kolektor.plotting.tempat')->with('info', 'Silakan pilih plotting tempat.');
                     }
-                    return redirect()->route('petugas.dashboard');
+                    return redirect()->route('kolektor.dashboard');
                 case 'admin_kecamatan':
                     return redirect()->route('admin_kecamatan.index');
                 case 'admin_kabupaten':

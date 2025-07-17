@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use Database\Seeders\Master\SettingSeeder;
 use Database\Seeders\User\UserSeeder;
 use Database\Seeders\Wilayah\KabupatenSeeder;
 use Database\Seeders\Wilayah\KecamatanSeeder;
@@ -18,6 +19,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            SettingSeeder::class,
             UserSeeder::class,
             KabupatenSeeder::class,
             KecamatanSeeder::class,

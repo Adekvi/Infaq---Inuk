@@ -19,7 +19,7 @@ class RegisterController extends Controller
 
     public function __construct(TwilioService $twilioService)
     {
-        $this->middleware('guest');
+        // $this->middleware('guest');
         $this->twilioService = $twilioService;
     }
 
@@ -87,7 +87,7 @@ class RegisterController extends Controller
                     $user->username = $request->username;
                     $user->no_hp = $no_hp;
                     $user->password = Hash::make($plainPassword);
-                    $user->role = 'petugas';
+                    $user->role = 'kolektor';
                     $user->status = 'A';
                     $user->save();
 

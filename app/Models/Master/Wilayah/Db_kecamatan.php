@@ -23,4 +23,9 @@ class Db_kecamatan extends Model
     {
         return $this->hasMany(Datadiri::class, 'id_kecamatan', 'id');
     }
+
+    public function plotting()
+    {
+        return $this->hasMany(Db_kecamatan::class, 'id_kecamatan', 'id');
+    }
 }

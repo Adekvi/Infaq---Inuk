@@ -23,17 +23,19 @@ class UserSeeder extends Seeder
             ],
             [
                 'id' => 2,
-                'username' => 'adminkecamatan',
-                'no_hp' => '08577799900',
+                'id_setting' => '4',
+                'username' => 'adminkabupaten',
+                'no_hp' => '085866090206',
                 'password' => bcrypt('1'),
-                'role' => 'admin_kecamatan',
+                'role' => 'admin_kabupaten',
             ],
             [
                 'id' => 3,
-                'username' => 'adminkabupaten',
-                'no_hp' => '08644499911',
+                'id_setting' => '5',
+                'username' => 'adminkecamatan',
+                'no_hp' => '089523324482',
                 'password' => bcrypt('1'),
-                'role' => 'admin_kabupaten',
+                'role' => 'admin_kecamatan',
             ]
         ];
 

@@ -32,7 +32,8 @@
     <meta name="description" content="" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('admin/img/favicon/favicon.ico') }}" />
+    <link rel="icon" type="image/png" href="{{ asset('landing/img/logo.png') }}">
+    <link rel="shortcut icon" href="{{ asset('landing/img/logo.png') }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -80,11 +81,11 @@
                 <div class="mb-3">
                   <label for="" class="form-label">Username / No. Hp</label>
                   <input type="text" id="identifier" name="identifier" class="form-control" placeholder="Username atau No. Hp"
-                    value="{{ old('identifier') }}" required autofocus />
+                    value="{{ old('identifier') ?: Cookie::get('identifier') }}" required autofocus />
                 @error('identifier')
     <span class="text-dark">
-                                                        <strong>{{ $message }}</strong>
-                                                    </span>
+                                                                                                <strong>{{ $message }}</strong>
+                                                                                            </span>
 @enderror
                 </div>
                 <div class="mb-3 form-password-toggle">
@@ -108,7 +109,8 @@
                 </div>
                 <div class="mb-3">
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="remember-me" />
+                    <input class="form-check-input" type="checkbox" id="remember-me" name="remember"
+                   {{ Cookie::get('identifier') ? 'checked' : '' }} />
                     <label class="form-check-label" for="remember-me"> Remember Me </label>
                   </div>
                 </div>

@@ -3,6 +3,7 @@
 namespace App\Models\Master\Wilayah;
 
 use App\Models\Master\Petugas\Db_petugas;
+use App\Models\Master\Plotting;
 use App\Models\Profil\Datadiri;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,15 +16,13 @@ class Db_kelurahan extends Model
         return $this->belongsTo(Db_kecamatan::class, 'id_kecamatan', 'id');
     }
 
-    public function petugas()
-    {
-        return $this->belongsToMany(Db_petugas::class, 'db_kelurahan_petugas', 'id_kelurahan', 'id_petugas')
-            ->withPivot('RW', 'RT')
-            ->withTimestamps();
-    }
-
     public function datadiri()
     {
         return $this->hasMany(Datadiri::class, 'id_kelurahan', 'id');
+    }
+
+    public function plotting()
+    {
+        return $this->belongsToMany(Plotting::class, 'kelurahanplottings', 'kelurahan_id', 'plotting_id');
     }
 }

@@ -24,6 +24,7 @@ class KecamatanController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('nama_kecamatan', 'LIKE', "%{$search}%")
                     ->orWhere('id', 'LIKE', "%{$search}%")
+                    ->orWhere('status', 'LIKE', "%{$search}%")
                     ->orWhereHas('kabupaten', function ($q2) use ($search) {
                         $q2->where('nama_kabupaten', 'LIKE', "%{$search}%");
                     });
@@ -66,7 +67,8 @@ class KecamatanController extends Controller
 
         $data = [
             'id_kabupaten' => $request->id_kabupaten,
-            'nama_kecamatan' => $request->nama_kecamatan
+            'nama_kecamatan' => $request->nama_kecamatan,
+            'status' => $request->status,
         ];
 
         Db_kecamatan::create($data);
@@ -93,7 +95,8 @@ class KecamatanController extends Controller
 
         $data = [
             'id_kabupaten' => $request->id_kabupaten,
-            'nama_kecamatan' => $request->nama_kecamatan
+            'nama_kecamatan' => $request->nama_kecamatan,
+            'status' => $request->status,
         ];
 
         Db_kecamatan::findOrFail($id)->update($data);

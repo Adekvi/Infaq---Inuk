@@ -27,6 +27,9 @@ return [
     */
 
     'env' => env('APP_ENV', 'production'),
+    'public_url' => env('PUBLIC_URL', 'http://127.0.0.1:8000'),
+    // config/app.php
+    // 'public_url' => env('APP_URL', 'https://51a37ad314ae.ngrok-free.app'),
 
     /*
     |--------------------------------------------------------------------------

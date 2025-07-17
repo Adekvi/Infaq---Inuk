@@ -2,6 +2,10 @@
 
 namespace App\Models\Profil;
 
+use App\Models\db_kelurahan_petugas;
+use App\Models\Master\Petugas\Db_petugas;
+use App\Models\Master\Plotting;
+use App\Models\Master\Setting;
 use App\Models\Master\Wilayah\Db_kecamatan;
 use App\Models\Master\Wilayah\Db_kelurahan;
 use App\Models\User;
@@ -14,6 +18,16 @@ class Datadiri extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'id_user', 'id');
+    }
+
+    public function setting()
+    {
+        return $this->belongsTo(Setting::class, 'id_setting', 'id');
+    }
+
+    public function plotting()
+    {
+        return $this->hasMany(Plotting::class, 'id_datadiri', 'id');
     }
 
     public function kecamatan()

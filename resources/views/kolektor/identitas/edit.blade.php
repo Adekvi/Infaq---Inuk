@@ -1,4 +1,4 @@
-<x-utama.layout.main title="Update Identitas Petugas">
+<x-utama.layout.main title="Update Identitas">
 
     <div class="content-wrapper">
         <!-- Content -->
@@ -16,7 +16,7 @@
                     </ul>
                     <div class="card mb-4">
                         <form id="formAccountSettings"
-                            action="{{ url('petugas/identitas/edit-data/' . $datadiri->id) }}" method="POST"
+                            action="{{ url('kolektor/identitas/edit-data/' . $datadiri->id) }}" method="POST"
                             enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
@@ -56,8 +56,7 @@
                                             <label for="nama_lengkap" class="form-label">Nama Lengkap</label>
                                             <input type="text" class="form-control mt-2 mb-2" id="nama_lengkap"
                                                 name="nama_lengkap"
-                                                value="{{ old('nama_lengkap', $datadiri->petugas->nama_petugas) }}"
-                                                required>
+                                                value="{{ old('nama_lengkap', $datadiri->nama_lengkap) }}" required>
                                             @error('nama_lengkap')
                                                 <span class="text-red-500 text-sm">{{ $message }}</span>
                                             @enderror
@@ -128,18 +127,18 @@
                                             @enderror
                                         </div>
                                         <div class="col-md-6">
-                                            <label for="Rw" class="form-label">RW</label>
-                                            <input type="text" class="form-control mt-2 mb-2" id="Rw"
-                                                name="Rw" value="{{ old('Rw', $datadiri->Rw) }}" required>
-                                            @error('Rw')
-                                                <span class="text-red-500 text-sm">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                        <div class="col-md-6">
                                             <label for="Rt" class="form-label">RT</label>
                                             <input type="text" class="form-control mt-2 mb-2" id="Rt"
                                                 name="Rt" value="{{ old('Rt', $datadiri->Rt) }}" required>
                                             @error('Rt')
+                                                <span class="text-red-500 text-sm">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="Rw" class="form-label">RW</label>
+                                            <input type="text" class="form-control mt-2 mb-2" id="Rw"
+                                                name="Rw" value="{{ old('Rw', $datadiri->Rw) }}" required>
+                                            @error('Rw')
                                                 <span class="text-red-500 text-sm">{{ $message }}</span>
                                             @enderror
                                         </div>
@@ -149,81 +148,6 @@
                                             @error('alamat')
                                                 <span class="text-red-500 text-sm">{{ $message }}</span>
                                             @enderror
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="pilih-wilayah">
-                                    <h5 class="card-header">Pilih Wilayah Bertugas</h5>
-                                    <hr>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <label for="pil_kecamatan">Kecamatan</label>
-                                            <select name="kecamatans[]" id="pil_kecamatan"
-                                                class="form-select mt-2 mb-2 select2" multiple>
-                                                <option value="">-- Pilih Kecamatan --</option>
-                                                @foreach ($kecamatan as $kcmt)
-                                                    <option value="{{ $kcmt->id }}"
-                                                        {{ in_array($kcmt->id, $wilayah_tugas->pluck('id_kecamatan')->toArray()) ? 'selected' : '' }}>
-                                                        {{ $kcmt->nama_kecamatan }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('kecamatans.*')
-                                                <span class="text-red-500 text-sm">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="pil_kelurahan">Kelurahan</label>
-                                                <select name="kelurahans[]" id="pil_kelurahan"
-                                                    class="form-select mt-2 mb-2 select2" multiple>
-                                                    <option value="">-- Pilih Kelurahan --</option>
-                                                    @foreach ($kelurahan as $klrh)
-                                                        <option value="{{ $klrh->id }}"
-                                                            {{ in_array($klrh->id, $wilayah_tugas->pluck('id_kelurahan')->toArray()) ? 'selected' : '' }}>
-                                                            {{ $klrh->nama_kelurahan }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @error('kelurahans.*')
-                                                    <span class="text-red-500 text-sm">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                            <div id="rw-rt-container" class="mt-3">
-                                                @foreach ($wilayah_tugas as $index => $wilayah)
-                                                    <div class="rw-rt-group mb-3"
-                                                        data-kelurahan-id="{{ $wilayah->id_kelurahan }}">
-                                                        <h6>RT/RW untuk
-                                                            {{ $kelurahan->firstWhere('id', $wilayah->id_kelurahan)->nama_kelurahan ?? 'Kelurahan' }}
-                                                        </h6>
-                                                        <div class="row">
-                                                            <div class="col-md-6">
-                                                                <label for="rw-{{ $index }}">RW</label>
-                                                                <input type="text" class="form-control mt-2 mb-2"
-                                                                    id="rw-{{ $index }}" name="rw[]"
-                                                                    value="{{ old('rw.' . $index, $wilayah->RW) }}"
-                                                                    placeholder="Masukkan RW">
-                                                                @error('rw.' . $index)
-                                                                    <span
-                                                                        class="text-red-500 text-sm">{{ $message }}</span>
-                                                                @enderror
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <label for="rt-{{ $index }}">RT</label>
-                                                                <input type="text" class="form-control mt-2 mb-2"
-                                                                    id="rt-{{ $index }}" name="rt[]"
-                                                                    value="{{ old('rt.' . $index, $wilayah->RT) }}"
-                                                                    placeholder="Masukkan RT">
-                                                                @error('rt.' . $index)
-                                                                    <span
-                                                                        class="text-red-500 text-sm">{{ $message }}</span>
-                                                                @enderror
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -308,7 +232,7 @@
                     if (selectedKecamatans.length > 0) {
                         const promises = selectedKecamatans.map(kecamatanId =>
                             $.ajax({
-                                url: '{{ route('petugas.getKelurahan') }}',
+                                url: '{{ route('kolektor.getKelurahan') }}',
                                 type: 'POST',
                                 data: {
                                     id_kecamatan: kecamatanId,
@@ -316,82 +240,8 @@
                                 }
                             })
                         );
-
-                        // Tunggu semua request selesai
-                        Promise.all(promises).then(results => {
-                            let kelurahanOptions = [];
-                            results.forEach((data, index) => {
-                                const kecamatanId = selectedKecamatans[index];
-                                const kecamatanName = $('#pil_kecamatan option[value="' +
-                                    kecamatanId + '"]').text();
-                                const kelurahanGroup = {
-                                    text: kecamatanName,
-                                    children: data.map(item => ({
-                                        id: item.id,
-                                        text: item.nama_kelurahan,
-                                        kecamatan_id: kecamatanId
-                                    }))
-                                };
-                                kelurahanOptions.push(kelurahanGroup);
-                            });
-
-                            // Update opsi kelurahan dengan optgroup
-                            $kelurahanSelect.select2({
-                                data: [{
-                                    id: '',
-                                    text: '-- Pilih Kelurahan --'
-                                }].concat(kelurahanOptions),
-                                placeholder: '-- Pilih Kelurahan --',
-                                allowClear: true,
-                                width: '100%'
-                            });
-
-                            // Kembalikan nilai kelurahan yang sudah dipilih sebelumnya
-                            const previousKelurahans = @json($wilayah_tugas->pluck('id_kelurahan')->toArray());
-                            $kelurahanSelect.val(previousKelurahans).trigger('change');
-                        }).catch(error => {
-                            console.error('Error fetching kelurahan:', error);
-                            alert('Gagal mengambil data kelurahan. Silakan coba lagi.');
-                        });
                     }
                 });
-
-                // Event saat kelurahan dipilih
-                $('#pil_kelurahan').on('change', function() {
-                    const selectedKelurahans = $(this).val() || [];
-                    const $container = $('#rw-rt-container');
-                    $container.empty();
-
-                    // Tambahkan input RW/RT untuk setiap kelurahan yang dipilih
-                    selectedKelurahans.forEach((kelurahanId, index) => {
-                        const $option = $('#pil_kelurahan option[value="' + kelurahanId + '"]');
-                        const kelurahanName = $option.text();
-                        // Cari data RW/RT sebelumnya untuk kelurahan ini
-                        const previousData = @json($wilayah_tugas->toArray()).find(w => w.id_kelurahan ==
-                            kelurahanId) || {};
-                        const rwValue = previousData.RW || '';
-                        const rtValue = previousData.RT || '';
-                        const rtRwInput = `
-                            <div class="rw-rt-group mb-3" data-kelurahan-id="${kelurahanId}">
-                                <h6>RT/RW untuk ${kelurahanName}</h6>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label for="rw-${index}">RW</label>
-                                        <input type="text" class="form-control mt-2 mb-2" id="rw-${index}" name="rw[]" value="${rwValue}" placeholder="Masukkan RW">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="rt-${index}">RT</label>
-                                        <input type="text" class="form-control mt-2 mb-2" id="rt-${index}" name="rt[]" value="${rtValue}" placeholder="Masukkan RT">
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        $container.append(rtRwInput);
-                    });
-                });
-
-                // Trigger change awal untuk memuat data sebelumnya
-                $('#pil_kecamatan').trigger('change');
             });
         </script>
     @endpush

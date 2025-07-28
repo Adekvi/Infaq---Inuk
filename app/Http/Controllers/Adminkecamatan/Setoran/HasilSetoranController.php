@@ -178,6 +178,8 @@ class HasilSetoranController extends Controller
             $message = "Tidak ada data yang tersedia.";
         }
 
+        // dd($hasil);
+
         $kecamatans = Db_kecamatan::where('status', 'Aktif')->get();
 
         // Ambil nilai unik Rt dan Rw dari penerimaans

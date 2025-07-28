@@ -22,20 +22,20 @@
                             <hr style="height: 2px; border: none">
                         </div>
                         <div class="card-body">
-                            <div class="page d-flex justify-content-between align-items-center mb-3">
+                            <div
+                                class="page d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
                                 {{-- Form kiri: Tampilkan & Filter Provinsi --}}
-                                <div class="d-flex align-items-center">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
                                     <form method="GET" action="{{ route('superadmin.master.kabupaten') }}"
-                                        class="d-flex align-items-center">
+                                        class="d-flex flex-wrap align-items-center gap-2">
                                         <input type="hidden" name="page" value="1">
 
                                         {{-- Tampilkan --}}
                                         <label for="entries" class="me-2">Tampilkan:</label>
-                                        <select name="entries" id="entries" class="form-select form-select-sm me-3"
+                                        <select name="entries" id="entries" class="form-select form-select-sm"
                                             style="width: 80px;" onchange="this.form.submit()">
                                             <option value="10" {{ request('entries', 10) == 10 ? 'selected' : '' }}>
-                                                10
-                                            </option>
+                                                10</option>
                                             <option value="25" {{ request('entries') == 25 ? 'selected' : '' }}>25
                                             </option>
                                             <option value="50" {{ request('entries') == 50 ? 'selected' : '' }}>50
@@ -44,33 +44,33 @@
                                             </option>
                                         </select>
 
-                                        {{-- Filter Provinsi --}}
-                                        {{-- <select name="filter_provinsi" class="form-select form-select-sm me-2">
+                                        {{-- (Opsional) Filter Provinsi --}}
+                                        {{-- 
+                                        <select name="filter_provinsi" class="form-select form-select-sm">
                                             <option value="">-- Semua Provinsi --</option>
                                             @foreach ($provinsiList as $provinsi)
-                                                <option value="{{ $provinsi->id }}"
-                                                    {{ request('filter_provinsi') == $provinsi->id ? 'selected' : '' }}>
+                                                <option value="{{ $provinsi->id }}" {{ request('filter_provinsi') == $provinsi->id ? 'selected' : '' }}>
                                                     {{ $provinsi->namaProvinsi }}
                                                 </option>
                                             @endforeach
                                         </select>
-
-                                        <button type="submit" class="btn btn-sm btn-primary" style="width: 150px;">
-                                            <i class="bx bxs-filter-alt"></i> Filter</button> --}}
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="bx bxs-filter-alt"></i> Filter
+                                        </button>
+                                        --}}
                                     </form>
                                 </div>
 
                                 {{-- Form kanan: Search --}}
-                                <div>
+                                <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-md-0">
                                     <form method="GET" action="{{ route('superadmin.master.kabupaten') }}"
-                                        class="d-flex align-items-center">
+                                        class="d-flex flex-wrap align-items-center gap-2">
                                         <input type="hidden" name="entries" value="{{ request('entries', 10) }}">
-                                        {{-- <input type="hidden" name="filter_provinsi"
-                                            value="{{ request('filter_provinsi') }}"> --}}
+                                        {{-- <input type="hidden" name="filter_provinsi" value="{{ request('filter_provinsi') }}"> --}}
                                         <input type="hidden" name="page" value="1">
 
                                         <input type="text" name="search" value="{{ $search }}"
-                                            class="form-control form-control-sm me-2" style="width: 200px;"
+                                            class="form-control form-control-sm" style="width: 200px;"
                                             placeholder="Cari Nama Kabupaten">
                                         <button type="submit" class="btn btn-sm btn-primary">
                                             <i class='bx bx-search-alt-2'></i> Cari

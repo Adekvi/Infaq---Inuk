@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Kolektor\Identitas;
+namespace App\Http\Controllers\AdminKecamatan\Identitas;
 
 use App\Http\Controllers\Controller;
 use App\Models\Master\Setting;
@@ -14,12 +14,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
-class DatadiriController extends Controller
+class DataDiriController extends Controller
 {
     public function __construct()
     {
-        // Middleware untuk memastikan hanya petugas yang bisa akses
-        $this->middleware('role:kolektor');
+        $this->middleware('role:admin_kecamatan');
     }
 
     public function create()
@@ -30,11 +29,11 @@ class DatadiriController extends Controller
         $kelurahans = Db_kelurahan::all();
 
         // Ambil setting berdasarkan role user
-        $setting = Setting::where('namasetting', 'Kolektor')->get();
+        $setting = Setting::where('namasetting', 'Admin Kecamatan')->get();
 
         // dd($user);
 
-        return view('kolektor.identitas.create', compact('user', 'kecamatans', 'kelurahans', 'setting'));
+        return view('admin_kecamatan.identitas.create', compact('user', 'kecamatans', 'kelurahans', 'setting'));
     }
 
     public function index()
@@ -49,17 +48,17 @@ class DatadiriController extends Controller
             ->first();
 
         if (!$datadiri) {
-            return redirect()->route('kolektor.identitas.create')->with('info', 'Silakan lengkapi data identitas Anda.');
+            return redirect()->route('admin_kecamatan.identitas.create')->with('info', 'Silakan lengkapi data identitas Anda.');
         }
 
         // dd($datadiri);
 
-        return view('kolektor.identitas.index', compact('datadiri'));
+        return view('admin_kecamatan.identitas.index', compact('datadiri'));
     }
 
     public function store(Request $request)
     {
-        Log::info('Mulai proses penyimpanan identitas kolektor', ['data' => $request->all()]);
+        Log::info('Mulai proses penyimpanan identitas Admin Kecamatan', ['data' => $request->all()]);
 
         // Mulai transaksi
         DB::beginTransaction();
@@ -87,7 +86,8 @@ class DatadiriController extends Controller
                 $fileName = time() . '_' . str_replace(' ', '_', $originalName);
 
                 // Pastikan folder fotos ada di storage/public
-                if (!Storage::disk('public')->exists('fotos')) {
+                if (!Storage
+                    ::disk('public')->exists('fotos')) {
                     Storage::disk('public')->makeDirectory('fotos');
                 }
 
@@ -126,7 +126,7 @@ class DatadiriController extends Controller
             // Komit transaksi
             DB::commit();
 
-            return redirect()->route('kolektor.identitas.index')->with('success', 'Data identitas berhasil disimpan.');
+            return redirect()->route('admin_kecamatan.identitas.index')->with('success', 'Data identitas berhasil disimpan.');
         } catch (\Exception $e) {
             // Rollback transaksi jika ada error
             DB::rollBack();
@@ -141,14 +141,12 @@ class DatadiriController extends Controller
         $kecamatan = Db_kecamatan::all();
         $kelurahan = Db_kelurahan::all();
 
-        // dd($datadiri);
-
-        return view('kolektor.identitas.edit', compact('datadiri', 'kecamatan', 'kelurahan'));
+        return view('admin_kecamatan.identitas.edit', compact('datadiri', 'kecamatan', 'kelurahan'));
     }
 
     public function edit(Request $request, $id)
     {
-        Log::info('Mulai proses pembaruan identitas kolektor', ['id' => $id, 'data' => $request->all()]);
+        Log::info('Mulai proses pembaruan identitas Admin Kecamatan', ['id' => $id, 'data' => $request->all()]);
 
         // Mulai transaksi
         DB::beginTransaction();
@@ -225,7 +223,7 @@ class DatadiriController extends Controller
             // Komit transaksi
             DB::commit();
 
-            return redirect()->route('kolektor.identitas.index')->with('success', 'Data identitas berhasil diubah.');
+            return redirect()->route('admin_kecamatan.identitas.index')->with('success', 'Data identitas berhasil diubah.');
         } catch (\Exception $e) {
             // Rollback transaksi jika ada error
             DB::rollBack();

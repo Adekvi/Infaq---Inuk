@@ -130,7 +130,7 @@
                                     @enderror
                                 </div>
                                 <div class="col-md-2">
-                                    <button type="button" class="btn btn-danger btn-sm remove-rt-rw" data-index="${index}">
+                                    <button type="button" class="btn btn-danger btn-sm remove-rt-rw mt-2" data-index="${index}">
                                         Hapus
                                     </button>
                                 </div>

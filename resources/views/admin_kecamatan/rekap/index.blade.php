@@ -230,13 +230,12 @@
                                         <thead class="table-primary text-center align-middle">
                                             <tr>
                                                 <th rowspan="2">No</th>
-                                                <th>Status</th>
+                                                <th rowspan="2">Nama Kolektor</th>
                                                 <th rowspan="2">Tanggal Setor</th>
-                                                <th rowspan="2">Nama Bank</th>
-                                                <th rowspan="2">Rekening</th>
                                                 <th rowspan="2">Nominal</th>
                                                 {{-- <th rowspan="2">Jumlah</th> --}}
                                                 <th rowspan="2">Bukti Foto Transfer</th>
+                                                <th>Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -257,22 +256,9 @@
                                                     @if ($item->status == 'Kirim')
                                                         <tr>
                                                             <td>{{ $hasil->firstItem() + $index }}</td>
-                                                            <td>
-                                                                @if ($item->status == 'Kirim')
-                                                                    <button class="btn btn-success">
-                                                                        <i class="fas fa-circle-check"></i> Diterima
-                                                                    </button>
-                                                                @else
-                                                                    <button class="btn btn-warning">
-                                                                        <i class="fa-solid fa-hourglass-start"></i>
-                                                                        Pending
-                                                                    </button>
-                                                                @endif
-                                                            </td>
+                                                            <td>{{ $item->user->username }}</td>
                                                             <td>{{ \Carbon\Carbon::parse($item->created_at ?? '-')->format('d-m-Y') }}
                                                             </td>
-                                                            <td>{{ $item->namaBank ?? '-' }}</td>
-                                                            <td>{{ $item->Rekening ?? '-' }}</td>
                                                             <td>{{ Rupiah($item->nominal) }}</td>
                                                             {{-- <td>{{ Rupiah($item->jumlah) }}</td> --}}
                                                             <td>
@@ -340,6 +326,20 @@
                                                                     <p>Tidak ada foto</p>
                                                                 @endif
                                                             </td>
+                                                            <td>
+                                                                @if ($item->status == 'Kirim')
+                                                                    <button class="btn btn-success"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#detail{{ $item->id }}">
+                                                                        <i class="fas fa-circle-check"></i> Diterima
+                                                                    </button>
+                                                                @else
+                                                                    <button class="btn btn-warning">
+                                                                        <i class="fa-solid fa-hourglass-start"></i>
+                                                                        Pending
+                                                                    </button>
+                                                                @endif
+                                                            </td>
                                                         </tr>
                                                     @else
                                                         <tr>
@@ -368,6 +368,8 @@
             </div>
         </div>
     </div>
+
+    @include('admin_kecamatan.rekap.modal.detail')
 
     @push('js')
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

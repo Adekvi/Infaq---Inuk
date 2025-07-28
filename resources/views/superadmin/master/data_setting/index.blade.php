@@ -22,7 +22,8 @@
                             <hr style="height: 2px; border: none">
                         </div>
                         <div class="card-body">
-                            <div class="page d-flex justify-content-between align-items-center mb-3">
+                            <div
+                                class="page d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-3">
                                 {{-- Form kiri: Tampilkan & Filter Provinsi --}}
                                 <div class="d-flex align-items-center">
                                     <form method="GET" action="{{ route('superadmin.master.setting') }}"
@@ -47,13 +48,15 @@
                                 </div>
 
                                 {{-- Form kanan: Search --}}
-                                <div>
+                                <div class="w-80 w-md-auto">
                                     <form method="GET" action="{{ route('superadmin.master.setting') }}"
-                                        class="d-flex align-items-center">
+                                        class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
+
                                         <input type="text" name="search" value="{{ $search }}"
-                                            class="form-control form-control-sm me-2" style="width: 200px;"
+                                            class="form-control form-control-sm flex-grow-1"
                                             placeholder="Cari Nama Kecamatan / Nama Kelurahan">
-                                        <button type="submit" class="btn btn-sm btn-primary">
+
+                                        <button type="submit" class="btn btn-sm btn-primary flex-shrink-0">
                                             <i class='bx bx-search-alt-2'></i> Cari
                                         </button>
                                     </form>
@@ -81,23 +84,25 @@
                                                     <td>{{ $setting->firstItem() + $index }}</td>
                                                     <td>{{ $item->namasetting }}</td>
                                                     <td>
-                                                        <a href="{{ url('superadmin/master-data/setting/edit-data/' . $item->id) }}"
-                                                            class="btn btn-sm btn-warning rounded-pill"
-                                                            data-bs-toggle="tooltip" data-bs-offset="0,4"
-                                                            data-bs-placement="top" data-bs-html="true"
-                                                            data-bs-original-title="<i class='bx bxs-pencil' ></i> <span>Edit Data</span>">
-                                                            <i class="bx bxs-pencil"></i> Edit
-                                                        </a>
-                                                        <span data-bs-toggle="tooltip" data-bs-offset="0,11"
-                                                            data-bs-placement="top" data-bs-html="true"
-                                                            data-bs-original-title="<i class='bx bxs-trash' ></i> <span>Hapus Data</span>">
-                                                            <button
-                                                                type="button"class="btn btn-sm btn-danger rounded-pill"
-                                                                data-bs-toggle="modal"
-                                                                data-bs-target="#hapus{{ $item->id }}">
-                                                                <i class="bx bxs-trash"></i> Hapus
-                                                            </button>
-                                                        </span>
+                                                        <div
+                                                            class="d-flex justify-content-center gap-2 align-items-center">
+                                                            <a href="{{ url('superadmin/master-data/setting/edit-data/' . $item->id) }}"
+                                                                class="btn btn-sm btn-warning" data-bs-toggle="tooltip"
+                                                                data-bs-offset="0,4" data-bs-placement="top"
+                                                                data-bs-html="true"
+                                                                data-bs-original-title="<i class='bx bxs-pencil' ></i> <span>Edit Data</span>">
+                                                                <i class="bx bxs-pencil"></i> Edit
+                                                            </a>
+                                                            <span data-bs-toggle="tooltip" data-bs-offset="0,11"
+                                                                data-bs-placement="top" data-bs-html="true"
+                                                                data-bs-original-title="<i class='bx bxs-trash' ></i> <span>Hapus Data</span>">
+                                                                <button type="button"class="btn btn-sm btn-danger"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#hapus{{ $item->id }}">
+                                                                    <i class="bx bxs-trash"></i> Hapus
+                                                                </button>
+                                                            </span>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             @endforeach

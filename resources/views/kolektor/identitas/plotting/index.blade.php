@@ -22,65 +22,58 @@
                             <hr style="height: 2px; border: none">
                         </div>
                         <div class="card-body">
-                            <div class="page d-flex justify-content-between align-items-center mb-3">
-                                <!-- Form kiri: Tampilkan & Filter Provinsi -->
-                                <div class="d-flex align-items-center">
-                                    <form method="GET" action="{{ route('plotting.kolektor.index') }}"
-                                        class="d-flex align-items-center">
-                                        <input type="hidden" name="page" value="1">
-
-                                        <div>
-                                            <!-- Tampilkan -->
-                                            <label for="entries" class="me-2">Tampilkan:</label>
-                                            <select name="entries" id="entries"
-                                                class="form-select form-select-sm me-3" style="width: 80px;"
-                                                onchange="this.form.submit()">
-                                                <option value="10"
-                                                    {{ request('entries', 10) == 10 ? 'selected' : '' }}>
-                                                    10</option>
-                                                <option value="25" {{ request('entries') == 25 ? 'selected' : '' }}>
-                                                    25
-                                                </option>
-                                                <option value="50" {{ request('entries') == 50 ? 'selected' : '' }}>
-                                                    50
-                                                </option>
-                                                <option value="100"
-                                                    {{ request('entries') == 100 ? 'selected' : '' }}>100
-                                                </option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Filter Jabatan, Kecamatan, dan Kelurahan -->
-                                        <div class="d-flex align-items-end gap-2 flex-wrap">
-                                            <!-- Dropdown Kecamatan -->
-                                            <div class="d-flex flex-column">
-                                                <label for="kecamatan" class="form-label">Kecamatan:</label>
-                                                <select name="kecamatan" id="kecamatan"
-                                                    class="form-select form-select-sm" style="width: 200px;">
-                                                    <option value="">-- Pilih Kecamatan --</option>
-                                                    @foreach ($kecamatans as $kec)
-                                                        <option value="{{ $kec->id }}"
-                                                            {{ request('kecamatan') == $kec->id ? 'selected' : '' }}>
-                                                            {{ $kec->nama_kecamatan }}
+                            <div class="page mb-3">
+                                <div class="row g-2 align-items-end">
+                                    <!-- Form kiri -->
+                                    <div class="col-lg-9 col-md-12">
+                                        <form method="GET" action="{{ route('plotting.kolektor.index') }}">
+                                            <input type="hidden" name="page" value="1">
+                                            <div class="row g-2">
+                                                <!-- Tampilkan -->
+                                                <div class="col-auto">
+                                                    <label for="entries" class="form-label">Tampilkan:</label>
+                                                    <select name="entries" id="entries"
+                                                        class="form-select form-select-sm" style="width: 80px;"
+                                                        onchange="this.form.submit()">
+                                                        <option value="10"
+                                                            {{ request('entries', 10) == 10 ? 'selected' : '' }}>10
                                                         </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
+                                                        <option value="25"
+                                                            {{ request('entries') == 25 ? 'selected' : '' }}>25</option>
+                                                        <option value="50"
+                                                            {{ request('entries') == 50 ? 'selected' : '' }}>50</option>
+                                                        <option value="100"
+                                                            {{ request('entries') == 100 ? 'selected' : '' }}>100
+                                                        </option>
+                                                    </select>
+                                                </div>
 
-                                            <!-- Dropdown Kelurahan -->
-                                            <div class="d-flex flex-column">
-                                                <label for="kelurahan" class="form-label">Kelurahan:</label>
-                                                <select name="kelurahan" id="kelurahan"
-                                                    class="form-select form-select-sm" style="width: 200px;">
-                                                    <option value="">-- Pilih Kelurahan --</option>
-                                                    <!-- Kelurahan akan diisi melalui JavaScript -->
-                                                </select>
-                                            </div>
+                                                <!-- Kecamatan -->
+                                                <div class="col-auto">
+                                                    <label for="kecamatan" class="form-label">Kecamatan:</label>
+                                                    <select name="kecamatan" id="kecamatan"
+                                                        class="form-select form-select-sm" style="width: 200px;">
+                                                        <option value="">-- Pilih Kecamatan --</option>
+                                                        @foreach ($kecamatans as $kec)
+                                                            <option value="{{ $kec->id }}"
+                                                                {{ request('kecamatan') == $kec->id ? 'selected' : '' }}>
+                                                                {{ $kec->nama_kecamatan }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
 
-                                            <!-- Tombol Filter & Reset -->
-                                            <div class="d-flex flex-column">
-                                                <label class="form-label invisible">Aksi</label>
-                                                <div class="d-flex gap-2">
+                                                <!-- Kelurahan -->
+                                                <div class="col-auto">
+                                                    <label for="kelurahan" class="form-label">Kelurahan:</label>
+                                                    <select name="kelurahan" id="kelurahan"
+                                                        class="form-select form-select-sm" style="width: 200px;">
+                                                        <option value="">-- Pilih Kelurahan --</option>
+                                                    </select>
+                                                </div>
+
+                                                <!-- Tombol -->
+                                                <div class="col-auto d-flex align-items-end" style="gap: 6px;">
                                                     <button type="submit" class="btn btn-sm btn-primary"
                                                         data-bs-toggle="tooltip" data-bs-offset="0,4"
                                                         data-bs-placement="top" data-bs-html="true"
@@ -95,24 +88,23 @@
                                                     </a>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </form>
-                                </div>
+                                        </form>
+                                    </div>
 
-                                <!-- Form kanan: Search -->
-                                <div>
-                                    <label class="form-label invisible">Aksi</label>
-                                    <form method="GET" action="{{ route('plotting.kolektor.index') }}"
-                                        class="d-flex align-items-center">
-                                        <input type="text" name="search" value="{{ $search }}"
-                                            class="form-control form-control-sm me-2" style="width: 200px;"
-                                            placeholder="Cari........">
-                                        <button type="submit" class="btn btn-sm btn-primary" data-bs-toggle="tooltip"
-                                            data-bs-offset="0,4" data-bs-placement="top" data-bs-html="true"
-                                            title="<i class='bx bx-search-alt-2'></i> <span>Cari</span>">
-                                            <i class='bx bx-search-alt-2'></i> Cari
-                                        </button>
-                                    </form>
+                                    <!-- Form kanan: Search -->
+                                    <div class="col-lg-3 col-md-12">
+                                        <form method="GET" action="{{ route('plotting.kolektor.index') }}"
+                                            class="d-flex align-items-end">
+                                            <input type="text" name="search" value="{{ $search }}"
+                                                class="form-control form-control-sm me-2" placeholder="Cari........">
+                                            <button type="submit" class="btn btn-sm btn-primary flex-shrink-0"
+                                                data-bs-toggle="tooltip" data-bs-offset="0,4" data-bs-placement="top"
+                                                data-bs-html="true"
+                                                title="<i class='bx bx-search-alt-2'></i> <span>Cari</span>">
+                                                <i class='bx bx-search-alt-2'></i> Cari
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
 
@@ -157,9 +149,9 @@
                                                     <td>{{ $item->Rw }}</td>
                                                     <td>
                                                         <a href="{{ url('kolektor/plotting-tempat/edit/' . $item->id) }}"
-                                                            class="btn btn-sm btn-warning rounded-pill"
-                                                            data-bs-toggle="tooltip" data-bs-offset="0,4"
-                                                            data-bs-placement="top" data-bs-html="true"
+                                                            class="btn btn-sm btn-warning" data-bs-toggle="tooltip"
+                                                            data-bs-offset="0,4" data-bs-placement="top"
+                                                            data-bs-html="true"
                                                             data-bs-original-title="<i class='bx bxs-pencil' ></i> <span>Edit Data</span>">
                                                             <i class="bx bxs-pencil"></i> Edit
                                                         </a>

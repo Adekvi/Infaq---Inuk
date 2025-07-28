@@ -22,57 +22,68 @@
                             <hr style="height: 2px; border: none">
                         </div>
                         <div class="card-body">
-                            <div class="page d-flex justify-content-between align-items-center mb-3">
+                            <div
+                                class="page d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-3">
                                 {{-- Form kiri: Tampilkan & Filter Provinsi --}}
-                                <div class="d-flex align-items-center">
+                                <div class="w-80 w-md-auto">
                                     <form method="GET" action="{{ route('superadmin.master.kelurahan') }}"
-                                        class="d-flex align-items-center">
+                                        class="d-flex flex-column flex-md-row flex-wrap align-items-stretch gap-2 w-100">
                                         <input type="hidden" name="page" value="1">
 
                                         {{-- Tampilkan --}}
-                                        <label for="entries" class="me-2">Tampilkan:</label>
-                                        <select name="entries" id="entries" class="form-select form-select-sm me-3"
-                                            style="width: 80px;" onchange="this.form.submit()">
-                                            <option value="10" {{ request('entries', 10) == 10 ? 'selected' : '' }}>
-                                                10
-                                            </option>
-                                            <option value="25" {{ request('entries') == 25 ? 'selected' : '' }}>25
-                                            </option>
-                                            <option value="50" {{ request('entries') == 50 ? 'selected' : '' }}>50
-                                            </option>
-                                            <option value="100" {{ request('entries') == 100 ? 'selected' : '' }}>100
-                                            </option>
-                                        </select>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <label for="entries" class="form-label mb-0">Tampilkan:</label>
+                                            <select name="entries" id="entries" class="form-select form-select-sm"
+                                                style="width: 80px;" onchange="this.form.submit()">
+                                                <option value="10"
+                                                    {{ request('entries', 10) == 10 ? 'selected' : '' }}>
+                                                    10
+                                                </option>
+                                                <option value="25" {{ request('entries') == 25 ? 'selected' : '' }}>
+                                                    25
+                                                </option>
+                                                <option value="50" {{ request('entries') == 50 ? 'selected' : '' }}>
+                                                    50
+                                                </option>
+                                                <option value="100"
+                                                    {{ request('entries') == 100 ? 'selected' : '' }}>100
+                                                </option>
+                                            </select>
+                                        </div>
 
                                         {{-- Filter Kecamatan --}}
-                                        <select name="filter_kecamatan" class="form-select form-select-sm me-2">
-                                            <option value="">-- Semua Kecamatan --</option>
-                                            @foreach ($kecamatanList as $kecamatan)
-                                                <option value="{{ $kecamatan->id }}"
-                                                    {{ request('filter_kecamatan') == $kecamatan->id ? 'selected' : '' }}>
-                                                    {{ $kecamatan->nama_kecamatan }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                        <div class="d-flex flex-grow-1 align-items-center gap-2">
+                                            <select name="filter_kecamatan" class="form-select form-select-sm w-100"
+                                                style="min-width: 200px;">
+                                                <option value="">-- Semua Kecamatan --</option>
+                                                @foreach ($kecamatanList as $kecamatan)
+                                                    <option value="{{ $kecamatan->id }}"
+                                                        {{ request('filter_kecamatan') == $kecamatan->id ? 'selected' : '' }}>
+                                                        {{ $kecamatan->nama_kecamatan }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
 
-                                        <button type="submit" class="btn btn-sm btn-primary" style="width: 150px;">
-                                            <i class="bx bxs-filter-alt"></i> Filter</button>
+                                            <button type="submit" class="btn btn-sm btn-primary flex-shrink-0">
+                                                <i class="bx bxs-filter-alt"></i> Filter</button>
+                                        </div>
                                     </form>
                                 </div>
 
                                 {{-- Form kanan: Search --}}
-                                <div>
+                                <div class="w-80 w-md-auto">
                                     <form method="GET" action="{{ route('superadmin.master.kelurahan') }}"
-                                        class="d-flex align-items-center">
+                                        class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
                                         <input type="hidden" name="entries" value="{{ request('entries', 10) }}">
                                         <input type="hidden" name="filter_kecamatan"
                                             value="{{ request('filter_kecamatan') }}">
                                         <input type="hidden" name="page" value="1">
 
                                         <input type="text" name="search" value="{{ $search }}"
-                                            class="form-control form-control-sm me-2" style="width: 200px;"
+                                            class="form-control form-control-sm flex-grow-1"
                                             placeholder="Cari Nama Kecamatan / Nama Kelurahan">
-                                        <button type="submit" class="btn btn-sm btn-primary">
+
+                                        <button type="submit" class="btn btn-sm btn-primary flex-shrink-0">
                                             <i class='bx bx-search-alt-2'></i> Cari
                                         </button>
                                     </form>
@@ -104,22 +115,25 @@
                                                     <td>{{ $item->id }}</td>
                                                     <td>{{ $item->nama_kelurahan }}</td>
                                                     <td>
-                                                        <a href="{{ url('superadmin/master-data/wilayah-kelurahan/edit-data/' . $item->id) }}"
-                                                            class="btn btn-warning rounded-pill"
-                                                            data-bs-toggle="tooltip" data-bs-offset="0,4"
-                                                            data-bs-placement="top" data-bs-html="true"
-                                                            data-bs-original-title="<i class='bx bxs-pencil' ></i> <span>Edit Data</span>">
-                                                            <i class="bx bxs-pencil"></i> Edit
-                                                        </a>
-                                                        <span data-bs-toggle="tooltip" data-bs-offset="0,11"
-                                                            data-bs-placement="top" data-bs-html="true"
-                                                            data-bs-original-title="<i class='bx bxs-trash' ></i> <span>Hapus Data</span>">
-                                                            <button type="button"class="btn btn-danger rounded-pill"
-                                                                data-bs-toggle="modal"
-                                                                data-bs-target="#hapus{{ $item->id }}">
-                                                                <i class="bx bxs-trash"></i> Hapus
-                                                            </button>
-                                                        </span>
+                                                        <div
+                                                            class="d-flex justify-content-center gap-2 align-items-center">
+                                                            <a href="{{ url('superadmin/master-data/wilayah-kelurahan/edit-data/' . $item->id) }}"
+                                                                class="btn btn-warning btn-sm" data-bs-toggle="tooltip"
+                                                                data-bs-offset="0,4" data-bs-placement="top"
+                                                                data-bs-html="true"
+                                                                data-bs-original-title="<i class='bx bxs-pencil' ></i> <span>Edit Data</span>">
+                                                                <i class="bx bxs-pencil"></i> Edit
+                                                            </a>
+                                                            <span data-bs-toggle="tooltip" data-bs-offset="0,11"
+                                                                data-bs-placement="top" data-bs-html="true"
+                                                                data-bs-original-title="<i class='bx bxs-trash' ></i> <span>Hapus Data</span>">
+                                                                <button type="button"class="btn btn-danger btn-sm"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#hapus{{ $item->id }}">
+                                                                    <i class="bx bxs-trash"></i> Hapus
+                                                                </button>
+                                                            </span>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             @endforeach

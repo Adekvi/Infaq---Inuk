@@ -15,7 +15,9 @@
                                             <i class="fa-solid fa-temperature-three-quarters"></i> Sedang Aktif
                                         </div>
                                     @endif
-                                    Dashboard Kolektor
+                                    <strong>Donasi {{ $jumlahDonatur }} dari donatur {{ $totalTarget }}
+                                        ({{ number_format($persentase, 2) }}%)</strong><br>
+                                    {{-- <strong>Rp {{ number_format($totalDonasi, 0, ',', '.') }}</strong> --}}
                                 </p>
                             </div>
                         </div>
@@ -65,14 +67,14 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Wilayah Infaq</span>
+                                <span class="fw-semibold d-block mb-1">Total Donatur</span>
                                 <h5 class="card-title mb-2">
                                     <strong>
-                                        {{-- {{ $infaqDetails->kelurahan->nama_kelurahan ?? '-' }} --}}
+                                        {{ $totalDonatur ?? '-' }}
                                     </strong>
                                 </h5>
                                 <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
-                                    Lokasi</small>
+                                </small>
                             </div>
                         </div>
                     </div>

@@ -15,7 +15,11 @@
                                             <i class="fa-solid fa-temperature-three-quarters"></i> Sedang Aktif
                                         </div>
                                     @endif
-                                    Dashboard Admin Kecamatan
+                                    <strong>
+                                        Donasi {{ $kolektor_mengirim_bulan_ini }} dari donatur
+                                        {{ $total_kolektor }}
+                                        ({{ number_format($persentase_mengirim, 2) }}%)
+                                    </strong>
                                 </p>
                             </div>
                         </div>
@@ -32,11 +36,12 @@
             </div>
             <div class="col-lg-6 col-md-4 order-1">
                 <div class="row">
+                    <!-- Total Donasi Tahunan -->
                     <div class="col-lg-6 col-md-12 col-6 mb-4">
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title d-flex align-items-start justify-content-between">
-                                    <i class="fa-solid fa-hospital-user fa-2x text-primary"></i>
+                                    <i class="fa-solid fa-sack-dollar fa-2x text-primary"></i>
                                     <div class="dropdown">
                                         <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown"
                                             aria-haspopup="true" aria-expanded="false">
@@ -44,18 +49,21 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Admin Kecamatan</span>
-                                <h3 class="card-title mb-2"></h3>
-                                <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
-                                    +100%</small>
+                                <span class="fw-semibold d-block mb-1">Total Donasi Tahun {{ now()->year }}</span>
+                                <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i></small>
+                                <h6 class="card-title mb-2">
+                                    <strong>Rp {{ number_format($total_donasi_tahun, 0, ',', '.') }}</strong>
+                                </h6>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Total Donasi Bulanan -->
                     <div class="col-lg-6 col-md-12 col-6 mb-4">
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title d-flex align-items-start justify-content-between">
-                                    <i class="fa-solid fa-suitcase-medical fa-2x text-warning"></i>
+                                    <i class="fa-solid fa-comments-dollar fa-2x text-warning"></i>
                                     <div class="dropdown">
                                         <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown"
                                             aria-haspopup="true" aria-expanded="false">
@@ -63,10 +71,13 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Petugas</span>
-                                <h3 class="card-title mb-2"></h3>
-                                <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
-                                    +100%</small>
+                                <span class="fw-semibold d-block mb-1">Total Donasi Bulan
+                                    {{ now()->translatedFormat('F') }}</span>
+                                <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i></small>
+                                <h6 class="card-title mb-2">
+                                    <strong>Rp
+                                        {{ number_format($total_donasi_per_bulan[now()->translatedFormat('F')] ?? 0, 0, ',', '.') }}</strong>
+                                </h6>
                             </div>
                         </div>
                     </div>
@@ -77,13 +88,38 @@
                 <div class="card">
                     <div class="row row-bordered g-0">
                         <div class="col-md-12">
-                            <h5 class="card-header m-0 me-2 pb-3">Grafik Pembayaran</h5>
-                            <div id="totalRevenueChart" class="px-2"></div>
+                            <h6 class="card-header m-0 me-2 pb-3">
+                                <strong>Rekap Donasi per RW</strong>
+                                <hr>
+                            </h6>
+                            <div class="card-body">
+                                @forelse ($rekap_per_rw as $data)
+                                    <div class="mb-2">
+                                        <strong>RW {{ $data->Rw ?? '-' }}</strong>
+                                        <div class="d-flex flex-column flex-md-row justify-content-between">
+                                            <div>
+                                                <span>
+                                                    {{ number_format($data->jumlah_donatur_mengirim, 0, ',', '.') }}
+                                                    dari {{ number_format($data->total_donatur, 0, ',', '.') }} donatur
+                                                    ({{ number_format($data->persentase, 2) }}%)
+                                                </span>
+                                            </div>
+                                            <div class="text-md-end">
+                                                <span>
+                                                    Rp {{ number_format($data->total_donasi, 0, ',', '.') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <p class="mb-0 text-center">Tidak ada data untuk bulan ini</p>
+                                @endforelse
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-6 col-lg-6 order-3 order-md-2">
+            {{-- <div class="col-12 col-md-6 col-lg-6 order-3 order-md-2">
                 <div class="row">
                     <div class="col-6 mb-4">
                         <div class="card">
@@ -98,7 +134,7 @@
                                     </div>
                                 </div>
                                 <span class="fw-semibold d-block mb-1">Transaksi</span>
-                                <h3 class="card-title mb-2"></h3>
+                                <h6 class="card-title mb-2"></h6>
                                 <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
                                     +100%</small>
                             </div>
@@ -117,14 +153,14 @@
                                     </div>
                                 </div>
                                 <span class="fw-semibold d-block mb-1">Tagihan</span>
-                                <h3 class="card-title mb-2"></h3>
+                                <h6 class="card-title mb-2"></h6>
                                 <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
                                     +100%</small>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
         </div>
     </div>
 

@@ -1,4 +1,4 @@
-<x-utama.layout.main title="Update Identitas Kolektor">
+<x-utama.layout.main title="Update Identitas">
 
     <div class="content-wrapper">
         <!-- Content -->
@@ -15,8 +15,8 @@
                         </li>
                     </ul>
                     <div class="card mb-4">
-                        <form id="formAccountSettings" action="{{ url('kolektor/identitas/store') }}" method="POST"
-                            enctype="multipart/form-data">
+                        <form id="formAccountSettings" action="{{ url('admin_kecamatan/identitas/store') }}"
+                            method="POST" enctype="multipart/form-data">
                             @csrf
                             <h5 class="card-header">Update Profil</h5>
                             <!-- Account -->
@@ -175,7 +175,7 @@
                                         class="btn btn-primary mt-3 mr-2">
                                         <i class="fa-solid fa-floppy-disk"></i> Simpan
                                     </button>
-                                    <a href="{{ route('kolektor.dashboard') }}" data-bs-toggle="tooltip"
+                                    <a href="{{ route('admin_kecamatan.index') }}" data-bs-toggle="tooltip"
                                         title="Kembali" class="btn btn-secondary mt-3">
                                         <i class="fa-solid fa-arrows-rotate"></i> Kembali
                                     </a>
@@ -232,7 +232,7 @@
                     var kecamatanId = $(this).val();
                     if (kecamatanId) {
                         $.ajax({
-                            url: '{{ route('kolektor.getKelurahan') }}',
+                            url: '{{ route('admin_kecamatan.getKelurahan') }}',
                             type: 'POST',
                             data: {
                                 id_kecamatan: kecamatanId,

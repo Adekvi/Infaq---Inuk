@@ -21,9 +21,23 @@
             <!-- User -->
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                    <div class="avatar avatar-online">
-                        <img src="{{ asset('admin/img/user.webp') }}" alt class="w-px-40 h-auto rounded-circle" />
-                    </div>
+                    @php
+                        use App\Models\Profil\DataDiri;
+
+                        $user = Auth::user();
+                        $datadiri = DataDiri::where('id_user', $user->id)->first();
+                        $fotoPath =
+                            $datadiri && $datadiri->foto && Storage::disk('public')->exists($datadiri->foto)
+                                ? Storage::url($datadiri->foto)
+                                : asset('admin/img/user.webp');
+                    @endphp
+
+                    @if ($user && in_array($user->role, ['superadmin', 'admin_kecamatan', 'admin_kabupaten', 'kolektor']))
+                        <div class="avatar avatar-online">
+                            <img src="{{ $fotoPath }}" alt="Foto" class="w-px-30 h-auto rounded-circle">
+                        </div>
+                    @endif
+                    {{-- <img src="{{ asset('admin/img/user.webp') }}" alt class="w-px-40 h-auto rounded-circle" /> --}}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li>
@@ -31,8 +45,12 @@
                             <div class="d-flex">
                                 <div class="flex-shrink-0 me-3">
                                     <div class="avatar avatar-online">
-                                        <img src="{{ asset('admin/img/user.webp') }}" alt
-                                            class="w-px-40 h-auto rounded-circle" />
+                                        @if ($user && in_array($user->role, ['superadmin', 'admin_kecamatan', 'admin_kabupaten', 'kolektor']))
+                                            <div class="avatar avatar-online">
+                                                <img src="{{ $fotoPath }}" alt="Foto"
+                                                    class="w-px-30 h-auto rounded-circle">
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">
@@ -45,21 +63,73 @@
                     <li>
                         <div class="dropdown-divider"></div>
                     </li>
-                    <li>
-                        <a class="dropdown-item" href="{{ url('kolektor/dashboard') }}">
-                            <i class="bx bx-user me-2"></i>
-                            <span class="align-middle">My Profile</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="#">
-                            <i class="bx bx-cog me-2"></i>
-                            <span class="align-middle">Settings</span>
-                        </a>
-                    </li>
-                    <li>
-                        <div class="dropdown-divider"></div>
-                    </li>
+                    @if (Auth::check())
+                        @if (AUth::user()->role == 'superadmin')
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bx bx-user me-2"></i>
+                                    <span class="align-middle">My Profile</span>
+                                </a>
+                            </li>
+                            {{-- <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bx bx-cog me-2"></i>
+                                    <span class="align-middle">Settings</span>
+                                </a>
+                            </li> --}}
+                            <li>
+                                <div class="dropdown-divider"></div>
+                            </li>
+                        @elseif (Auth::user()->role == 'admin_kabupaten')
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bx bx-user me-2"></i>
+                                    <span class="align-middle">My Profile</span>
+                                </a>
+                            </li>
+                            {{-- <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bx bx-cog me-2"></i>
+                                    <span class="align-middle">Settings</span>
+                                </a>
+                            </li> --}}
+                            <li>
+                                <div class="dropdown-divider"></div>
+                            </li>
+                        @elseif (Auth::user()->role == 'admin_kecamatan')
+                            <li>
+                                <a class="dropdown-item" href="{{ url('admin_kecamatan/identitas/index') }}">
+                                    <i class="bx bx-user me-2"></i>
+                                    <span class="align-middle">My Profile</span>
+                                </a>
+                            </li>
+                            {{-- <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bx bx-cog me-2"></i>
+                                    <span class="align-middle">Settings</span>
+                                </a>
+                            </li> --}}
+                            <li>
+                                <div class="dropdown-divider"></div>
+                            </li>
+                        @elseif (Auth::user()->role == 'kolektor')
+                            <li>
+                                <a class="dropdown-item" href="{{ url('kolektor/identitas/index') }}">
+                                    <i class="bx bx-user me-2"></i>
+                                    <span class="align-middle">My Profile</span>
+                                </a>
+                            </li>
+                            {{-- <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bx bx-cog me-2"></i>
+                                    <span class="align-middle">Settings</span>
+                                </a>
+                            </li> --}}
+                            <li>
+                                <div class="dropdown-divider"></div>
+                            </li>
+                        @endif
+                    @endif
                     <li>
                         <form action="{{ route('logout') }}" method="POST">
                             @csrf

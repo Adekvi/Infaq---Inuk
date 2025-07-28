@@ -22,7 +22,8 @@
                             <hr style="height: 2px; border: none">
                         </div>
                         <div class="card-body">
-                            <div class="page d-flex justify-content-between align-items-center mb-3">
+                            <div
+                                class="page d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-3">
                                 {{-- Form kiri: Tampilkan & Filter Provinsi --}}
                                 <div class="d-flex align-items-end">
                                     <form method="GET" action="{{ route('superadmin.master.user') }}"
@@ -82,7 +83,7 @@
                                             </div>
 
                                             {{-- Tombol Filter & Reset --}}
-                                            <div class="d-flex flex-column">
+                                            <div class="flex-column">
                                                 <label class="form-label invisible">Aksi</label> {{-- Label tersembunyi agar sejajar --}}
                                                 <div class="d-flex gap-2">
                                                     <button type="submit" data-bs-toggle="tooltip"
@@ -108,18 +109,18 @@
 
 
                                 {{-- Form kanan: Search --}}
-                                <div>
+                                <div class="w-80 w-md-auto">
                                     <label class="form-label invisible">Aksi</label>
                                     <form method="GET" action="{{ route('superadmin.master.user') }}"
-                                        class="d-flex align-items-center">
+                                        class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
 
                                         <input type="text" name="search" value="{{ $search }}"
-                                            class="form-control form-control-sm me-2" style="width: 200px;"
-                                            placeholder="Cari........">
+                                            class="form-control form-control-sm flex-grow-1" placeholder="Cari........">
+
                                         <button type="submit" data-bs-toggle="tooltip" data-bs-offset="0,11"
                                             data-bs-placement="top" data-bs-html="true"
                                             data-bs-original-title="<i class='bx bx-search'></i><span>Cari Data</span>"
-                                            class="btn btn-sm btn-primary">
+                                            class="btn btn-sm btn-primary flex-shrink-0">
                                             <i class='bx bx-search-alt-2'></i> Cari
                                         </button>
                                     </form>

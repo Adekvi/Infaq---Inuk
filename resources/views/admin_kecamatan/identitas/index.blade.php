@@ -1,4 +1,4 @@
-<x-utama.layout.main title="Kartu Identitas Kolektor">
+<x-utama.layout.main title="Kartu Identitas">
 
     <div class="content-wrapper">
         <div class="container-xxl flex-grow-1 container-p-y">
@@ -9,7 +9,7 @@
                     <div class="card mb-6 shadow-sm"
                         style="border-radius: 15px; background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
                         <div class="card-header bg-secondary text-center" style="border-radius: 12px 12px 0 0;">
-                            <h5 class="mb-0 text-white">Kartu Identitas Kolektor</h5>
+                            <h5 class="mb-0 text-white">Kartu Identitas</h5>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -22,7 +22,7 @@
                                     @endphp
 
 
-                                    <img src="{{ $fotoPath }}" alt="Foto Kolektor" class="img-fluid rounded"
+                                    <img src="{{ $fotoPath }}" alt="Foto" class="img-fluid rounded"
                                         style="width: 120px; height: 120px; object-fit: cover; border: 2px;">
 
                                 </div>
@@ -71,10 +71,10 @@
                         </div>
                     </div>
                     <div class="mt-3 text-start">
-                        <a href="{{ route('kolektor.dashboard') }}" class="btn btn-primary">
+                        <a href="{{ route('admin_kecamatan.index') }}" class="btn btn-primary">
                             <i class="fa-solid fa-arrow-left"></i> Kembali ke
                             Dashboard</a>
-                        <a href="{{ url('kolektor/identitas/edit/' . $datadiri->id) }}"
+                        <a href="{{ url('admin_kecamatan/identitas/edit/' . $datadiri->id) }}"
                             class="btn btn-outline-secondary">
                             <i class="fas fa-pencil"></i> Edit
                             Data Diri</a>

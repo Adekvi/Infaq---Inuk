@@ -232,7 +232,7 @@
                                                 <th rowspan="2">Tanggal Setor</th>
                                                 <th rowspan="2">Nama Bank</th>
                                                 <th rowspan="2">Rekening</th>
-                                                <th rowspan="2">Nominal</th>
+                                                {{-- <th rowspan="2">Nominal</th> --}}
                                                 <th rowspan="2">Jumlah</th>
                                                 <th rowspan="2">Bukti Foto Transfer</th>
                                                 <th>Status</th>
@@ -260,7 +260,7 @@
                                                             </td>
                                                             <td>{{ $item->namaBank ?? '-' }}</td>
                                                             <td>{{ $item->Rekening ?? '-' }}</td>
-                                                            <td>{{ Rupiah($item->nominal) }}</td>
+                                                            {{-- <td>{{ Rupiah($item->nominal) }}</td> --}}
                                                             <td>{{ Rupiah($item->jumlah) }}</td>
                                                             <td>
                                                                 @if ($item->bukti_foto)
@@ -349,7 +349,8 @@
                                                 <tr>
                                                     <td colspan="5" class="text-center fw-bold">Jumlah Total
                                                     </td>
-                                                    <td class="fw-bold">{{ Rupiah($hasil->sum('nominal')) }}</td>
+                                                    <td colspan="2" class="fw-bold">
+                                                        {{ Rupiah($hasil->sum('nominal')) }}</td>
                                                 </tr>
                                             @endif
                                         </tbody>
@@ -366,6 +367,15 @@
             </div>
         </div>
     </div>
+
+    @push('css')
+        <style>
+            /* Alert */
+            .swal2-container {
+                z-index: 9999 !important;
+            }
+        </style>
+    @endpush
 
     @push('js')
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -402,26 +412,34 @@
                     })
                     .then(response => {
                         if (!response.ok) {
-                            return response.text().then(text => {
-                                throw new Error('Server returned status: ' + response.status + ' - ' + text);
+                            return response.json().then(data => {
+                                throw new Error(data.error || 'Gagal memproses laporan.');
                             });
                         }
-                        return response.json();
+                        return response.blob().then(blob => ({
+                            blob,
+                            headers: response.headers
+                        }));
                     })
-                    .then(data => {
-                        if (data.error || !data.filename) {
-                            console.error('Error:', data.error || 'No filename provided');
-                            button.disabled = false;
-                            button.innerHTML = '<i class="fa-solid fa-file-excel"></i> Ekspor Excel';
-                            return;
-                        }
-                        checkFileAvailability(data.filename, button, 'excel');
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
+                    .then(({
+                        blob,
+                        headers
+                    }) => {
+                        const filename = headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] ||
+                            'Laporan_Excel.xlsx';
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+
+                        // Reset tombol
                         button.disabled = false;
                         button.innerHTML = '<i class="fa-solid fa-file-excel"></i> Ekspor Excel';
-                    });
+                    })
             }
 
             function exportPdf() {
@@ -453,35 +471,71 @@
                     })
                     .then(response => {
                         if (!response.ok) {
-                            return response.text().then(text => {
-                                throw new Error('Server returned status: ' + response.status + ' - ' + text);
+                            return response.json().then(data => {
+                                throw new Error(data.error || 'Gagal memproses laporan PDF.');
                             });
                         }
-                        return response.json();
+                        return response.blob().then(blob => ({
+                            blob,
+                            headers: response.headers
+                        }));
                     })
-                    .then(data => {
-                        if (data.error || !data.filename) {
-                            console.error('Error:', data.error || 'No filename provided');
-                            button.disabled = false;
-                            button.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Ekspor PDF';
-                            return;
-                        }
-                        checkFileAvailability(data.filename, button, 'pdf');
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
+                    .then(({
+                        blob,
+                        headers
+                    }) => {
+                        const filename = headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] || 'Laporan.pdf';
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+
+                        // Tampilkan notifikasi sukses
+                        // Swal.fire({
+                        //     title: 'Sukses',
+                        //     text: 'File PDF berhasil diunduh!',
+                        //     icon: 'success',
+                        //     timer: 2000,
+                        //     showConfirmButton: false
+                        // });
+
+                        // Reset tombol
                         button.disabled = false;
                         button.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Ekspor PDF';
-                    });
+                    })
+                // .catch(error => {
+                //     console.error('Error:', error.message);
+                //     Swal.fire({
+                //         title: 'Error',
+                //         text: error.message,
+                //         icon: 'error',
+                //         timer: 2000,
+                //         showConfirmButton: false
+                //     });
+                //     button.disabled = false;
+                //     button.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Ekspor PDF';
+                // });
             }
 
             function checkFileAvailability(filename, button, type) {
                 if (!filename) {
                     console.error('Filename is undefined or null');
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Nama file tidak valid.',
+                        icon: 'error',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
                     button.disabled = false;
                     button.innerHTML = type === 'excel' ?
                         '<i class="fa-solid fa-file-excel"></i> Ekspor Excel' :
                         '<i class="fa-solid fa-file-pdf"></i> Ekspor PDF';
+                    clearTimeout(pollingTimeout);
                     return;
                 }
 
@@ -491,15 +545,34 @@
                     "{{ route('kolektor.report.pdf', ['filename' => ':filename']) }}".replace(':filename', encodeURIComponent(
                         filename));
 
-                fetch(endpoint)
+                fetch(endpoint, {
+                        method: 'HEAD'
+                    })
                     .then(response => {
                         if (response.ok) {
-                            window.location.href = endpoint;
+                            // File tersedia, mulai unduhan
+                            const link = document.createElement('a');
+                            link.href = endpoint;
+                            link.setAttribute('download', filename);
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+
+                            // Tampilkan notifikasi sukses
+                            Swal.fire({
+                                title: 'Sukses',
+                                text: `File ${filename} berhasil diunduh!`,
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+
+                            // Hentikan polling dan reset tombol
+                            clearTimeout(pollingTimeout);
                             button.disabled = false;
                             button.innerHTML = type === 'excel' ?
                                 '<i class="fa-solid fa-file-excel"></i> Ekspor Excel' :
                                 '<i class="fa-solid fa-file-pdf"></i> Ekspor PDF';
-                            clearTimeout(pollingTimeout);
                         } else {
                             console.log('File not ready, retrying in 5 seconds');
                             pollingTimeout = setTimeout(() => checkFileAvailability(filename, button, type), 5000);
@@ -507,11 +580,18 @@
                     })
                     .catch(error => {
                         console.error('Error checking file:', error);
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Gagal memeriksa ketersediaan file.',
+                            icon: 'error',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        clearTimeout(pollingTimeout);
                         button.disabled = false;
                         button.innerHTML = type === 'excel' ?
                             '<i class="fa-solid fa-file-excel"></i> Ekspor Excel' :
                             '<i class="fa-solid fa-file-pdf"></i> Ekspor PDF';
-                        clearTimeout(pollingTimeout);
                     });
             }
 

@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Adminkecamatan\DashboardController as AdminkecamatanDashboardController;
-use App\Http\Controllers\Adminkecamatan\Info\KirimInformasiController;
+use App\Http\Controllers\AdminKecamatan\Identitas\DataDiriController as IdentitasDataDiriController;
 use App\Http\Controllers\Adminkecamatan\Pengiriman\SendController;
 use App\Http\Controllers\Adminkecamatan\Pengiriman\TampilController;
 use App\Http\Controllers\Adminkecamatan\Rekap\FileController;
@@ -26,10 +26,6 @@ use App\Http\Controllers\Superadmin\Master\DataWilayah\KabupatenController;
 use App\Http\Controllers\Superadmin\Master\DataWilayah\KecamatanController;
 use App\Http\Controllers\Superadmin\Master\DataWilayah\KelurahanController;
 use Illuminate\Support\Facades\Route;
-
-// Route::get('/', function () {
-//     return view('welcome');
-// });
 
 Route::get('/', [HomeController::class, 'index']);
 
@@ -147,7 +143,7 @@ Route::middleware(['auth', 'role:kolektor'])->group(function () {
     Route::post('kolektor/identitas/store', [DatadiriController::class, 'store'])->name('kolektor.identitas.store');
     Route::get('kolektor/identitas/edit/{id}', [DatadiriController::class, 'tampilEdit'])->name('kolektor.identitas.edit');
     Route::put('kolektor/identitas/edit-data/{id}', [DatadiriController::class, 'edit'])->name('kolektor.identitas.edit-data');
-    Route::get('kolektor/get-kelurahan', [DatadiriController::class, 'getKelurahan'])->name('kolektor.getKelurahan');
+    Route::post('kolektor/get-kelurahan', [DatadiriController::class, 'getKelurahan'])->name('kolektor.getKelurahan');
 
     // KOLEKTOR PENERIMAAN
     Route::get('kolektor/penerimaan/input-infaq', [PenerimaanController::class, 'index'])->name('kolektor.input.infaq');
@@ -182,9 +178,19 @@ Route::middleware(['auth', 'role:kolektor'])->group(function () {
 Route::middleware(['auth', 'role:admin_kecamatan'])->group(function () {
     Route::get('admin_kecamatan/dashboard', [AdminkecamatanDashboardController::class, 'index'])->name('admin_kecamatan.index');
 
+    // IDENTITAS
+    Route::get('admin_kecamatan/identitas/index', [IdentitasDataDiriController::class, 'index'])->name('admin_kecamatan.identitas.index');
+
+    // UPDATE IDENTITAS
+    Route::get('admin_kecamatan/identitas/create', [IdentitasDataDiriController::class, 'create'])->name('admin_kecamatan.identitas.create');
+    Route::post('admin_kecamatan/identitas/store', [IdentitasDataDiriController::class, 'store'])->name('admin_kecamatan.identitas.store');
+    Route::get('admin_kecamatan/identitas/edit/{id}', [IdentitasDataDiriController::class, 'tampilEdit'])->name('admin_kecamatan.identitas.edit');
+    Route::put('admin_kecamatan/identitas/edit-data/{id}', [IdentitasDataDiriController::class, 'edit'])->name('admin_kecamatan.identitas.edit-data');
+    Route::post('admin_kecamatan-identitas/get-kelurahan', [IdentitasDataDiriController::class, 'getKelurahan'])->name('admin_kecamatan.getKelurahan');
+
     // DATA SETORAN
     Route::get('admin_kecamatan/hasil-setoran/index', [HasilSetoranController::class, 'index'])->name('adminkecamatan.hasil-setoran');
-    Route::get('admib_kecamatan/getKelurahan', [HasilSetoranController::class, 'getKelurahan'])->name('admin.getKelurahan');
+    Route::get('admin_kecamatan/getKelurahan', [HasilSetoranController::class, 'getKelurahan'])->name('admin.getKelurahan');
 
     // EXPORT DATA EXCEL
     Route::get('/download-excel/{filename}', [HasilSetoranController::class, 'downloadExcel'])->name('admin_kecamatan.report.excel.download');

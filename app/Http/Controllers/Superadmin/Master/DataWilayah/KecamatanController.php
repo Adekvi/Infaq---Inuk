@@ -30,7 +30,7 @@ class KecamatanController extends Controller
                     });
             });
         }
-        // Filter berdasarkan kabupaten jika ada
+        // Filter berdasarkan kabupaten jika adagh
         if ($filterKabupaten) {
             $query->where('id_kabupaten', $filterKabupaten);
         }

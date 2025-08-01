@@ -5,7 +5,7 @@
             <div class="col-lg-12 mb-4 order-0">
                 <div class="pasien-bpjs">
                     <div class="card-title">
-                        <h5 style="margin-bottom: 20px"><strong>Data Plotting Tempat</strong></h5>
+                        <h5><strong>Data Plotting Tempat</strong></h5>
                     </div>
 
                     <div class="card">
@@ -19,7 +19,7 @@
                                     <i class="bx bxs-file-plus"></i>
                                 </a>
                             </div>
-                            <hr style="height: 2px; border: none">
+                            <hr>
                         </div>
                         <div class="card-body">
                             <div class="container-fluid mb-3">
@@ -105,7 +105,104 @@
                                 </div>
                             </div>
 
-                            <div class="table-responsive">
+                            <div class="row">
+                                @if ($plotting->isEmpty())
+                                    <div class="col-12">
+                                        <div class="alert alert-info text-center">Tidak ada data</div>
+                                    </div>
+                                @else
+                                    @foreach ($plotting as $index => $item)
+                                        <div class="col-md-6 col-lg-4 mb-4">
+                                            <div class="card shadow-sm border-1 h-100">
+                                                <div class="card-body">
+                                                    <h6 class="card-title mb-2">
+                                                        #{{ $plotting->firstItem() + $index }} - Ploting Tempat
+                                                    </h6>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 100px;"><strong>Username</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->user->username ?? '-' }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 100px;"><strong>Nama</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->datadiri->nama_lengkap ?? '-' }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 100px;"><strong>Jabatan</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->user->setting->namasetting ?? '-' }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 100px;"><strong>Kecamatan</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->kecamatan->nama_kecamatan ?? '-' }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 100px;"><strong>Kelurahan</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            @forelse ($item->kelurahan as $kel)
+                                                                <span>{{ $kel->nama_kelurahan }}</span>
+                                                            @empty
+                                                                <span>-</span>
+                                                            @endforelse
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 100px;"><strong>RT/RW</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->Rt }}/{{ $item->Rw }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex justify-content-start gap-2 mt-2">
+                                                        <div
+                                                            class="d-flex justify-content-center gap-2 align-items-center">
+                                                            <a href="{{ url('superadmin/master-data/plotting/edit-data/' . $item->id) }}"
+                                                                class="btn btn-sm btn-warning"
+                                                                data-bs-toggle="tooltip" data-bs-offset="0,4"
+                                                                data-bs-placement="top" data-bs-html="true"
+                                                                data-bs-original-title="<i class='bx bxs-pencil' ></i> <span>Edit Data</span>">
+                                                                <i class="bx bxs-pencil"></i> Edit
+                                                            </a>
+                                                            <span data-bs-toggle="tooltip" data-bs-offset="0,11"
+                                                                data-bs-placement="top" data-bs-html="true"
+                                                                data-bs-original-title="<i class='bx bxs-trash' ></i> <span>Hapus Data</span>">
+                                                                <button type="button" class="btn btn-sm btn-danger"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#hapus{{ $item->id }}">
+                                                                    <i class="bx bxs-trash"></i> Hapus
+                                                                </button>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+
+                            <div class="halaman d-flex justify-content-end mt-3 mt-3">
+                                {{ $plotting->appends(['entries' => $entries])->links() }}
+                            </div>
+
+                            {{-- <div class="table-responsive">
                                 <table id="example" class="table table-striped table-bordered text-center"
                                     style="white-space: nowrap">
                                     <thead class="table-primary align-middle">
@@ -150,9 +247,9 @@
                                                         <div
                                                             class="d-flex justify-content-center gap-2 align-items-center">
                                                             <a href="{{ url('superadmin/master-data/plotting/edit-data/' . $item->id) }}"
-                                                                class="btn btn-sm btn-warning" data-bs-toggle="tooltip"
-                                                                data-bs-offset="0,4" data-bs-placement="top"
-                                                                data-bs-html="true"
+                                                                class="btn btn-sm btn-warning"
+                                                                data-bs-toggle="tooltip" data-bs-offset="0,4"
+                                                                data-bs-placement="top" data-bs-html="true"
                                                                 data-bs-original-title="<i class='bx bxs-pencil' ></i> <span>Edit Data</span>">
                                                                 <i class="bx bxs-pencil"></i> Edit
                                                             </a>
@@ -176,7 +273,7 @@
                                 <div class="halaman d-flex justify-content-end mt-3 mt-3">
                                     {{ $plotting->appends(['entries' => $entries])->links() }}
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>

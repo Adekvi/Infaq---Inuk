@@ -33,7 +33,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title d-flex align-items-start justify-content-between">
-                                    <i class="fa-solid fa-hospital-user fa-2x text-primary"></i>
+                                    <i class="fa-solid fa-sack-dollar fa-2x text-primary"></i>
                                     <div class="dropdown">
                                         <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown"
                                             aria-haspopup="true" aria-expanded="false">
@@ -41,10 +41,10 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Admin Kecamatan</span>
+                                <span class="fw-semibold d-block mb-1">Total Donasi</span>
                                 <h3 class="card-title mb-2"></h3>
                                 <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
-                                    +100%</small>
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -60,10 +60,10 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Petugas</span>
+                                <span class="fw-semibold d-block mb-1">Admin Kecamatan</span>
                                 <h3 class="card-title mb-2"></h3>
                                 <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
-                                    +100%</small>
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -94,10 +94,10 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Transaksi</span>
+                                <span class="fw-semibold d-block mb-1">Admin Kabupaten</span>
                                 <h3 class="card-title mb-2"></h3>
                                 <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
-                                    +100%</small>
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -113,10 +113,10 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Tagihan</span>
+                                <span class="fw-semibold d-block mb-1">Jumlah Kolektor</span>
                                 <h3 class="card-title mb-2"></h3>
                                 <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
-                                    +100%</small>
+                                </small>
                             </div>
                         </div>
                     </div>

@@ -53,7 +53,7 @@ class KecamatanSeeder extends Seeder
             [
                 'id_kabupaten' => 3319,
                 'id' => 331907,
-                'nama_kecamatan' => 'KALIWUNGU',
+                'nama_kecamatan' => 'BAE',
                 'status' => 'Non-aktif',
             ],
             [

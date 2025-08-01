@@ -3,24 +3,24 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Kode\Verifyotp;
 use App\Models\User;
-use App\Services\TwilioService;
-use Carbon\Carbon;
+use App\Models\Kode\Verifyotp;
+use App\Services\FonnteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class RegisterController extends Controller
 {
-    protected $twilioService;
+    protected $fonnteService; // Ubah nama properti agar lebih jelas
 
-    public function __construct(TwilioService $twilioService)
+    public function __construct(FonnteService $fonnteService)
     {
         // $this->middleware('guest');
-        $this->twilioService = $twilioService;
+        $this->fonnteService = $fonnteService;
     }
 
     /**
@@ -52,7 +52,6 @@ class RegisterController extends Controller
         Log::info('Mulai proses pendaftaran');
 
         try {
-            // Validasi input
             $validated = $request->validate([
                 'username' => ['nullable', 'string', 'max:255', 'unique:users,username'],
                 'no_hp' => ['required', 'string', 'unique:users,no_hp', 'regex:/^[0-9]+$/'],
@@ -61,28 +60,21 @@ class RegisterController extends Controller
 
             Log::info('Validasi berhasil', ['data' => $validated]);
 
-            // Format nomor HP
             $no_hp = $this->formatPhoneNumber($request->no_hp);
             Log::info('Nomor HP setelah diformat: ' . $no_hp);
 
-            // Simpan password asli sebelum di-hash
             $plainPassword = $request->password;
-
-            // Buat OTP
             $otp = rand(100000, 999999);
             Log::info('OTP yang dibuat: ' . $otp);
 
-            // Kirim OTP ke WhatsApp
             $otpMessage = "Kode OTP Anda: $otp. Berlaku selama 5 menit.";
-            $otpSent = $this->twilioService->sendWhatsAppMessage($no_hp, $otpMessage);
+            $otpSent = $this->fonnteService->sendWhatsAppMessage($no_hp, $otpMessage);
 
             if ($otpSent) {
                 Log::info('Membuat user baru');
 
-                // Gunakan transaksi untuk menyimpan data
                 DB::beginTransaction();
                 try {
-                    // Simpan user ke tabel users
                     $user = new User();
                     $user->username = $request->username;
                     $user->no_hp = $no_hp;
@@ -91,7 +83,6 @@ class RegisterController extends Controller
                     $user->status = 'A';
                     $user->save();
 
-                    // Simpan OTP ke tabel user_otp
                     $userOtp = new Verifyotp();
                     $userOtp->user_id = $user->id;
                     $userOtp->otp = $otp;
@@ -101,7 +92,6 @@ class RegisterController extends Controller
 
                     Log::info('User dan OTP berhasil dibuat', ['user' => $user, 'otp' => $userOtp]);
 
-                    // Kirim pesan konfirmasi pendaftaran
                     $welcomeMessage = "Halo, *{$user->username}*! 🎉\n\n"
                         . "Akun Anda telah berhasil dibuat. Berikut adalah detail login Anda:\n"
                         . "🔹 *Username:* {$user->username}\n"
@@ -113,9 +103,10 @@ class RegisterController extends Controller
                         . "📞 Bantuan? Hubungi kami di " . env('NOMOR_CS') . "\n\n"
                         . "Terima kasih telah bergabung dengan *" . env('NAMA_PERUSAHAAN') . "*! 🚀✨";
 
-                    $this->twilioService->sendWhatsAppMessage($no_hp, $welcomeMessage);
+                    $this->fonnteService->sendWhatsAppMessage($no_hp, $welcomeMessage);
 
                     DB::commit();
+                    Log::info('Masuk ke halaman verifikasi OTP', ['user_id' => $user->id]);
                     return redirect()->route('verify.otp', ['user_id' => $user->id])
                         ->with('success', 'Kode OTP telah dikirim.');
                 } catch (\Exception $e) {
@@ -124,12 +115,12 @@ class RegisterController extends Controller
                     return redirect()->back()->with('error', 'Gagal menyimpan data. Silakan coba lagi.');
                 }
             } else {
-                Log::error('Gagal mengirim kode OTP');
-                return redirect()->back()->with('error', 'Gagal mengirim kode OTP.');
+                Log::error('Gagal mengirim kode OTP: Respons API tidak sukses', ['no_hp' => $no_hp]);
+                return redirect()->back()->with('error', 'Gagal mengirim kode OTP. Silakan coba lagi.');
             }
         } catch (\Exception $e) {
             Log::error('Error saat pendaftaran: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Terjadi kesalahan. Silakan coba lagi.');
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
@@ -197,12 +188,6 @@ class RegisterController extends Controller
         }
     }
 
-    /**
-     * Kirim ulang kode OTP
-     */
-    /**
-     * Mengirim ulang OTP jika user meminta resend
-     */
     public function resendOtp(Request $request)
     {
         $request->validate([
@@ -218,13 +203,25 @@ class RegisterController extends Controller
 
         // Generate OTP baru
         $otp = rand(100000, 999999);
-        $user->update([
-            'otp' => $otp,
-            'otp_expiry' => Carbon::now()->addMinutes(5),
-        ]);
+        $userOtp = Verifyotp::where('user_id', $user->id)->first();
+        if ($userOtp) {
+            $userOtp->update([
+                'otp' => $otp,
+                'otp_expiry' => Carbon::now()->addMinutes(5),
+                'is_verified' => false,
+            ]);
+        } else {
+            $userOtp = new Verifyotp();
+            $userOtp->user_id = $user->id;
+            $userOtp->otp = $otp;
+            $userOtp->otp_expiry = Carbon::now()->addMinutes(5);
+            $userOtp->is_verified = false;
+            $userOtp->save();
+        }
 
         // Kirim ulang OTP ke WhatsApp
-        $this->twilioService->sendWhatsAppMessage($user->no_hp, "Kode verifikasi baru Anda adalah: $otp");
+        $otpMessage = "Kode verifikasi baru Anda adalah: $otp";
+        $this->fonnteService->sendWhatsAppMessage($user->no_hp, $otpMessage);
 
         return redirect()->route('verify.otp', ['user_id' => $user->id])->with('success', 'Kode OTP telah dikirim ulang.');
     }
@@ -235,8 +232,8 @@ class RegisterController extends Controller
     protected function redirectToRolePage($role)
     {
         switch ($role) {
-            case 'petugas':
-                return redirect()->route('petugas.index'); // Ganti sesuai route customer
+            case 'kolektor':
+                return redirect()->route('kolektor.index'); // Ganti sesuai route customer
             case 'admin_kecamatan':
                 return redirect()->route('admin_kecamatan.index'); // Ganti sesuai route sopir
             case 'admin_kabupaten':

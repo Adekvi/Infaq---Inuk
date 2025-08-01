@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Superadmin\Master\DataUser;
 use App\Http\Controllers\Controller;
 use App\Models\Master\Setting;
 use App\Models\User;
-use App\Services\TwilioService;
+use App\Services\FonnteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -14,13 +14,14 @@ use Illuminate\Support\Facades\Log;
 class UserController extends Controller
 {
 
-    protected $twilioService;
+    protected $fonnteService;
 
-    public function __construct(TwilioService $twilioService)
+    public function __construct(FonnteService $fonnteService)
     {
         // $this->middleware('guest');
-        $this->twilioService = $twilioService;
+        $this->fonnteService = $fonnteService;
     }
+
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -93,6 +94,18 @@ class UserController extends Controller
         return view('superadmin.master.data_user.tambah', compact('setting'));
     }
 
+    public function updateStatus(Request $request)
+    {
+        $userId = $request->input('id');
+        $newStatus = $request->has('status') ? 'A' : 'N';
+
+        $user = User::findOrFail($userId);
+        $user->status = $newStatus;
+        $user->save();
+
+        return redirect()->back()->with('status', 'Status berhasil diubah!');
+    }
+
     public function tambah(Request $request)
     {
         // dd($request->all());
@@ -141,7 +154,7 @@ class UserController extends Controller
                     . "📞 Bantuan? Hubungi kami di " . env('NOMOR_CS') . "\n\n"
                     . "Terima kasih telah bergabung dengan *" . env('NAMA_PERUSAHAAN') . "*! 🚀✨";
 
-                $this->twilioService->sendWhatsAppMessage($no_hp, $welcomeMessage);
+                $this->fonnteService->sendWhatsAppMessage($no_hp, $welcomeMessage);
 
                 DB::commit();
                 return redirect()->route('superadmin.master.user');
@@ -221,7 +234,7 @@ class UserController extends Controller
                     . "📞 Bantuan? Hubungi kami di " . env('NOMOR_CS') . "\n\n"
                     . "Terima kasih telah menggunakan *" . env('NAMA_PERUSAHAAN') . "*! 🚀✨";
 
-                $this->twilioService->sendWhatsAppMessage($no_hp, $updateMessage);
+                $this->fonnteService->sendWhatsAppMessage($no_hp, $updateMessage);
 
                 DB::commit();
                 return redirect()->route('superadmin.master.user');

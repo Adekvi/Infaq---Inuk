@@ -25,6 +25,7 @@
                     </div>
                 </div>
                 <a href="#" class="nav-item nav-link">Kontak</a>
+                <a href="{{ url('login') }}" class="nav-item nav-link">Login</a>
             </div>
             <a href="#" class="btn btn-primary rounded-pill py-2 px-4 my-3 my-lg-0">Donasi Sekarang</a>
         </div>

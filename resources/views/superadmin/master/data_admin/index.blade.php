@@ -79,7 +79,61 @@
                                 </div>
                             </div>
 
-                            <div class="table-responsive">
+                            <div class="row">
+                                @if ($useradmin->isEmpty())
+                                    <div class="col-12">
+                                        <div class="alert alert-warning text-center">Tidak ada data</div>
+                                    </div>
+                                @else
+                                    @foreach ($useradmin as $index => $item)
+                                        <div class="col-md-6 col-lg-4 mb-4">
+                                            <div class="card shadow border-0 rounded-4">
+                                                <div class="card-body">
+                                                    <h5 class="card-title mb-2">{{ $item->username }}</h5>
+                                                    <p class="mb-1"><strong>No. HP:</strong> {{ $item->no_hp }}</p>
+                                                    <p class="mb-1">
+                                                        <strong>Status:</strong>
+                                                    <form method="POST"
+                                                        action="{{ route('admin-master.data.status') }}">
+                                                        @csrf
+                                                        <input type="hidden" name="id"
+                                                            value="{{ $item->id }}">
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                role="switch" id="status_{{ $item->id }}"
+                                                                name="status" value="A"
+                                                                onchange="this.form.submit()"
+                                                                {{ $item->status === 'A' ? 'checked' : '' }}>
+                                                            <label class="form-check-label"
+                                                                for="status_{{ $item->id }}">
+                                                                {{ $item->status === 'A' ? 'Aktif' : 'Nonaktif' }}
+                                                            </label>
+                                                        </div>
+                                                    </form>
+                                                    </p>
+                                                    <div class="mt-3 d-flex gap-2">
+                                                        <a href="#" class="btn btn-warning btn-sm rounded-pill">
+                                                            <i class="bx bxs-pencil"></i> Edit
+                                                        </a>
+                                                        <button type="button"
+                                                            class="btn btn-danger btn-sm rounded-pill"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#hapus{{ $item->id }}">
+                                                            <i class="bx bxs-trash"></i> Hapus
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+
+                            <div class="halaman d-flex justify-content-end mt-3">
+                                {{ $useradmin->appends(['entries' => $entries])->links() }}
+                            </div>
+
+                            {{-- <div class="table-responsive">
                                 <table id="example" class="table table-striped table-bordered text-center"
                                     style="width:100%; white-space: nowrap">
                                     <thead class="table-primary">
@@ -149,7 +203,7 @@
                                 <div class="halaman d-flex justify-content-end">
                                     {{ $useradmin->appends(['entries' => $entries])->links() }}
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>

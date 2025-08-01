@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Master\Plotting;
 use App\Models\Master\Wilayah\Db_kecamatan;
 use App\Models\Master\Wilayah\Db_kelurahan;
+use App\Models\Profil\Datadiri;
 use App\Models\Role\Transaksi\Penerimaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -84,6 +85,8 @@ class PenerimaanController extends Controller
             'rw' => $rw
         ]);
 
+        // dd($terima);
+
         // Ambil data untuk dropdown
         $kecamatans = Db_kecamatan::where('status', 'Aktif')->get();
         // Ambil nilai unik Rt dan Rw dari penerimaans
@@ -114,62 +117,120 @@ class PenerimaanController extends Controller
 
     public function tampiltambah()
     {
-        $terima = Plotting::with(['user', 'kecamatan', 'kelurahan'])->first();
+        $idUser = Auth::id();
 
-        // dd($terima);
+        // Ambil plotting untuk user ini
+        $plotting = Plotting::with(['kecamatan', 'kelurahan'])
+            ->where('id_user', $idUser)
+            ->get();
 
-        return view('kolektor.transaksi.penerimaan.tambah', compact('terima'));
+        // dd($plotting);
+
+        // Ambil kecamatan yang ada plottingnya
+        $kecamatans = $plotting->groupBy('id_kecamatan');
+
+        return view('kolektor.transaksi.penerimaan.tambah', compact('kecamatans'));
+    }
+
+    // API AJAX untuk ambil kelurahan berdasarkan kecamatan
+    public function getKelurahanByKecamatan(Request $request)
+    {
+        $idUser = Auth::id();
+
+        $kelurahan = Plotting::with('kelurahan')
+            ->where('id_user', $idUser)
+            ->where('id_kecamatan', $request->id_kecamatan)
+            ->get()
+            ->unique('id_kelurahan') // Menghapus data duplikat berdasarkan id_kelurahan
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id_kelurahan,
+                    'nama_kelurahan' => $item->kelurahan->nama_kelurahan,
+                    'rt' => json_decode($item->Rt, true),
+                    'rw' => json_decode($item->Rw, true),
+                ];
+            })
+            ->values(); // Reset index agar rapi
+
+        return response()->json($kelurahan);
     }
 
     public function tambah(Request $request)
     {
         // Validasi input
         $validated = $request->validate([
+            'kecamatan' => 'required|exists:db_kecamatans,id',
+            'kelurahan' => 'required|exists:db_kelurahans,id',
             'Rt.*' => 'required|string|max:255',
             'Rw.*' => 'required|string|max:255',
             'nominal.*' => 'required|numeric|min:0',
             'jumlah' => 'required|numeric|min:0',
-            'bukti_foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Max 2MB
+            'bukti_foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'tglSetor' => 'nullable|date',
             'namaBank' => 'nullable|string|max:255',
             'Rekening' => 'nullable|integer',
         ]);
 
-        // Validasi jumlah elemen array Rt, Rw, dan nominal
-        $rtCount = count($request->Rt);
-        $rwCount = count($request->Rw);
-        $nominalCount = count($request->nominal);
-        if ($rtCount !== $rwCount || $rtCount !== $nominalCount) {
-            return redirect()->back()->withErrors(['error' => 'Jumlah RT, RW, dan Nominal tidak sesuai.'])->withInput();
+        // Cek jumlah array RT, RW, dan nominal
+        if (count($request->Rt) !== count($request->Rw) || count($request->Rt) !== count($request->nominal)) {
+            return back()->withErrors(['error' => 'Jumlah RT, RW, dan Nominal tidak sesuai'])->withInput();
         }
 
-        // Validasi total jumlah
+        // Validasi total nominal
         $totalNominal = array_sum(array_map('floatval', $request->nominal));
         if ($totalNominal != $request->jumlah) {
-            return redirect()->back()->withErrors(['jumlah' => 'Jumlah tidak sesuai dengan total nominal.'])->withInput();
+            return back()->withErrors(['jumlah' => 'Jumlah tidak sesuai dengan total nominal'])->withInput();
         }
 
-        // Ambil id_user dari user yang sedang login
         $id_user = Auth::id();
+        $dataDiri = Datadiri::where('id_user', $id_user)->first();
 
-        // Ambil id_plot dari data plotting
-        $terima = Plotting::first();
-        if (!$terima) {
-            return redirect()->back()->with('error', 'Data plotting tidak ditemukan.');
+        // 🔹 Cek apakah plotting untuk user + kecamatan + kelurahan sudah ada
+        $plotting = Plotting::where('id_user', $id_user)
+            ->where('id_kecamatan', $request->kecamatan)
+            ->where('id_kelurahan', $request->kelurahan)
+            ->first();
+
+        // Kalau belum ada → buat baru (RT/RW di-JSON-kan semua dari input)
+        if (!$plotting) {
+            $plotting = Plotting::create([
+                'id_user' => $id_user,
+                'id_datadiri' => $dataDiri->id ?? null,
+                'id_kecamatan' => $request->kecamatan,
+                'id_kelurahan' => $request->kelurahan,
+                'Rt' => json_encode($request->Rt),
+                'Rw' => json_encode($request->Rw),
+            ]);
+        } else {
+            $existingRt = json_decode($plotting->Rt, true) ?? [];
+            $existingRw = json_decode($plotting->Rw, true) ?? [];
+
+            // Gabungkan & hilangkan duplikat
+            $mergedRt = array_unique(array_merge($existingRt, $request->Rt));
+            $mergedRw = array_unique(array_merge($existingRw, $request->Rw));
+
+            // Reset index agar array numerik murni
+            $mergedRt = array_values($mergedRt);
+            $mergedRw = array_values($mergedRw);
+
+            // Simpan lagi
+            $plotting->update([
+                'Rt' => json_encode($mergedRt, JSON_UNESCAPED_UNICODE),
+                'Rw' => json_encode($mergedRw, JSON_UNESCAPED_UNICODE),
+            ]);
         }
-        $id_plot = $terima->id;
 
-        // Handle upload file bukti_foto
+        // Simpan bukti foto jika ada
         $bukti_foto_path = null;
         if ($request->hasFile('bukti_foto')) {
             $bukti_foto_path = $request->file('bukti_foto')->store('bukti_foto', 'public');
         }
 
-        // Simpan data untuk setiap baris Rt, Rw, dan nominal
+        // 🔹 Simpan ke penerimaan (satu baris per RT/RW)
         foreach ($request->nominal as $index => $nominal) {
-            Penerimaan::create([
+            $penerimaan = [
                 'id_user' => $id_user,
-                'id_plot' => $id_plot,
+                'id_plot' => $plotting->id,
                 'Rt' => $request->Rt[$index],
                 'Rw' => $request->Rw[$index],
                 'nominal' => $nominal,
@@ -178,11 +239,15 @@ class PenerimaanController extends Controller
                 'tglSetor' => $request->tglSetor,
                 'namaBank' => $request->namaBank,
                 'Rekening' => $request->Rekening,
-                'status' => 'Pending', // Default status
-            ]);
+                'status' => 'Pending',
+            ];
+
+            // dd($penerimaan);
+
+            Penerimaan::create($penerimaan);
         }
 
-        return redirect()->route('kolektor.input.infaq');
+        return redirect()->route('kolektor.input.infaq')->with('success', 'Data donasi berhasil disimpan.');
     }
 
     public function editdata(Request $request, $id)

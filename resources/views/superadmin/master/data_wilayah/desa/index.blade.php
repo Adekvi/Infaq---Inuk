@@ -5,7 +5,7 @@
             <div class="col-lg-12 mb-4 order-0">
                 <div class="pasien-bpjs">
                     <div class="card-title">
-                        <h5 style="margin-bottom: 20px"><strong>Data Kelurahan</strong></h5>
+                        <h5><strong>Data Kelurahan</strong></h5>
                     </div>
 
                     <div class="card">
@@ -19,7 +19,7 @@
                                     <i class="bx bxs-file-plus"></i>
                                 </a>
                             </div>
-                            <hr style="height: 2px; border: none">
+                            <hr>
                         </div>
                         <div class="card-body">
                             <div
@@ -71,26 +71,91 @@
                                 </div>
 
                                 {{-- Form kanan: Search --}}
-                                <div class="w-80 w-md-auto">
-                                    <form method="GET" action="{{ route('superadmin.master.kelurahan') }}"
-                                        class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
-                                        <input type="hidden" name="entries" value="{{ request('entries', 10) }}">
-                                        <input type="hidden" name="filter_kecamatan"
-                                            value="{{ request('filter_kecamatan') }}">
-                                        <input type="hidden" name="page" value="1">
-
-                                        <input type="text" name="search" value="{{ $search }}"
-                                            class="form-control form-control-sm flex-grow-1"
-                                            placeholder="Cari Nama Kecamatan / Nama Kelurahan">
-
-                                        <button type="submit" class="btn btn-sm btn-primary flex-shrink-0">
-                                            <i class='bx bx-search-alt-2'></i> Cari
-                                        </button>
+                                <div class="col-12 col-md-4">
+                                    <form method="GET" action="{{ route('superadmin.master.kelurahan') }}">
+                                        <div class="row g-2 align-items-end">
+                                            <div class="col-8 col-sm-9">
+                                                <input type="hidden" name="entries"
+                                                    value="{{ request('entries', 10) }}">
+                                                <input type="hidden" name="filter_kecamatan"
+                                                    value="{{ request('filter_kecamatan') }}">
+                                                <input type="hidden" name="page" value="1">
+                                                <input type="text" name="search" value="{{ $search }}"
+                                                    class="form-control form-control-sm" placeholder="Cari...">
+                                            </div>
+                                            <div class="col-4 col-sm-3">
+                                                <button type="submit" class="btn btn-sm btn-primary w-100">
+                                                    <i class="bx bx-search-alt-2"></i> Cari
+                                                </button>
+                                            </div>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
 
-                            <div class="table-responsive">
+                            <div class="row">
+                                @if ($kelurahan->isEmpty())
+                                    <div class="col-12">
+                                        <div class="alert alert-info text-center">Tidak ada data</div>
+                                    </div>
+                                @else
+                                    @foreach ($kelurahan as $index => $item)
+                                        <div class="col-md-6 col-lg-4 mb-4">
+                                            <div class="card shadow-sm border-1 h-100">
+                                                <div class="card-body">
+                                                    <h6 class="card-title mb-2">
+                                                        #{{ $kelurahan->firstItem() + $index }} -
+                                                        {{ $item->kecamatan->nama_kecamatan ?? '-' }}
+                                                    </h6>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 100px;"><strong>Kode</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->id ?? '-' }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 100px;"><strong>Kelurahan</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->nama_kelurahan ?? '-' }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex justify-content-start gap-2 mt-2">
+                                                        <div
+                                                            class="d-flex justify-content-center gap-2 align-items-center">
+                                                            <a href="{{ url('superadmin/master-data/wilayah-kelurahan/edit-data/' . $item->id) }}"
+                                                                class="btn btn-warning btn-sm" data-bs-toggle="tooltip"
+                                                                data-bs-offset="0,4" data-bs-placement="top"
+                                                                data-bs-html="true"
+                                                                data-bs-original-title="<i class='bx bxs-pencil' ></i> <span>Edit Data</span>">
+                                                                <i class="bx bxs-pencil"></i> Edit
+                                                            </a>
+                                                            <span data-bs-toggle="tooltip" data-bs-offset="0,11"
+                                                                data-bs-placement="top" data-bs-html="true"
+                                                                data-bs-original-title="<i class='bx bxs-trash' ></i> <span>Hapus Data</span>">
+                                                                <button type="button"class="btn btn-danger btn-sm"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#hapus{{ $item->id }}">
+                                                                    <i class="bx bxs-trash"></i> Hapus
+                                                                </button>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+
+                            <div class="halaman d-flex justify-content-end mt-3 mt-3">
+                                {{ $kelurahan->appends(['entries' => $entries])->links() }}
+                            </div>
+
+                            {{-- <div class="table-responsive">
                                 <table id="example" class="table table-striped table-bordered text-center"
                                     style="width:100%">
                                     <thead class="table-primary">
@@ -118,9 +183,9 @@
                                                         <div
                                                             class="d-flex justify-content-center gap-2 align-items-center">
                                                             <a href="{{ url('superadmin/master-data/wilayah-kelurahan/edit-data/' . $item->id) }}"
-                                                                class="btn btn-warning btn-sm" data-bs-toggle="tooltip"
-                                                                data-bs-offset="0,4" data-bs-placement="top"
-                                                                data-bs-html="true"
+                                                                class="btn btn-warning btn-sm"
+                                                                data-bs-toggle="tooltip" data-bs-offset="0,4"
+                                                                data-bs-placement="top" data-bs-html="true"
                                                                 data-bs-original-title="<i class='bx bxs-pencil' ></i> <span>Edit Data</span>">
                                                                 <i class="bx bxs-pencil"></i> Edit
                                                             </a>
@@ -144,7 +209,7 @@
                                 <div class="halaman d-flex justify-content-end mt-3 mt-3">
                                     {{ $kelurahan->appends(['entries' => $entries])->links() }}
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>

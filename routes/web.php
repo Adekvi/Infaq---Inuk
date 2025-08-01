@@ -1,11 +1,14 @@
 <?php
 
-use App\Http\Controllers\Adminkecamatan\DashboardController as AdminkecamatanDashboardController;
+use App\Http\Controllers\AdminKabupaten\DashboardController as AdminKabupatenDashboardController;
+use App\Http\Controllers\AdminKabupaten\Rekap\RekapController;
+use App\Http\Controllers\AdminKabupaten\Setor\SetorController;
+use App\Http\Controllers\AdminKecamatan\DashboardController as AdminKecamatanDashboardController;
 use App\Http\Controllers\AdminKecamatan\Identitas\DataDiriController as IdentitasDataDiriController;
-use App\Http\Controllers\Adminkecamatan\Pengiriman\SendController;
-use App\Http\Controllers\Adminkecamatan\Pengiriman\TampilController;
-use App\Http\Controllers\Adminkecamatan\Rekap\FileController;
-use App\Http\Controllers\Adminkecamatan\Setoran\HasilSetoranController;
+use App\Http\Controllers\AdminKecamatan\Pengiriman\SendController;
+use App\Http\Controllers\AdminKecamatan\Pengiriman\TampilController;
+use App\Http\Controllers\AdminKecamatan\Rekap\FileController;
+use App\Http\Controllers\AdminKecamatan\Setoran\HasilSetoranController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
@@ -25,6 +28,7 @@ use App\Http\Controllers\Superadmin\Master\DataUser\UserController;
 use App\Http\Controllers\Superadmin\Master\DataWilayah\KabupatenController;
 use App\Http\Controllers\Superadmin\Master\DataWilayah\KecamatanController;
 use App\Http\Controllers\Superadmin\Master\DataWilayah\KelurahanController;
+use App\Services\FonnteService;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index']);
@@ -67,6 +71,7 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::get('superadmin/master-data/user/edit-data/{id}', [UserController::class, 'editdata']);
     Route::put('superadmin/master-data/user/edit/{id}', [UserController::class, 'edit']);
     Route::delete('superadmin/master-data/user/hapus/{id}', [UserController::class, 'hapus']);
+    Route::post('superadmin/master-data/update-status', [UserController::class, 'updateStatus'])->name('superadmin.data.status');
 
     // MASTER PLOTTING
     Route::get('superadmin/master-data/plotting', [PlottingController::class, 'index'])->name('superadmin.master.plotting');
@@ -152,6 +157,7 @@ Route::middleware(['auth', 'role:kolektor'])->group(function () {
     Route::get('kolektor/penerimaan/input-infaq/edit-data/{id}', [PenerimaanController::class, 'editdata'])->name('kolektor.input.infaq.edit-tampil');
     Route::put('kolektor/penerimaan/input-infaq/edit/{id}', [PenerimaanController::class, 'edit'])->name('kolektor.input.infaq.edit');
     Route::delete('kolektor/penerimaan/input-infaq/hapus/{id}', [PenerimaanController::class, 'hapus'])->name('kolektor.input.infaq.hapus');
+    Route::post('/get-kelurahan', [PenerimaanController::class, 'getKelurahanByKecamatan'])->name('ajax.getKelurahan');
     Route::get('kolektor/penerimaan/get-kelurahan', [PenerimaanController::class, 'getKelurahan'])->name('kolektor.penerimaan.getKelurahan');
 
     // KOLEKTOR PENGIRIMAN
@@ -176,7 +182,7 @@ Route::middleware(['auth', 'role:kolektor'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:admin_kecamatan'])->group(function () {
-    Route::get('admin_kecamatan/dashboard', [AdminkecamatanDashboardController::class, 'index'])->name('admin_kecamatan.index');
+    Route::get('admin_kecamatan/dashboard', [AdminKecamatanDashboardController::class, 'index'])->name('admin_kecamatan.index');
 
     // IDENTITAS
     Route::get('admin_kecamatan/identitas/index', [IdentitasDataDiriController::class, 'index'])->name('admin_kecamatan.identitas.index');
@@ -191,6 +197,8 @@ Route::middleware(['auth', 'role:admin_kecamatan'])->group(function () {
     // DATA SETORAN
     Route::get('admin_kecamatan/hasil-setoran/index', [HasilSetoranController::class, 'index'])->name('adminkecamatan.hasil-setoran');
     Route::get('admin_kecamatan/getKelurahan', [HasilSetoranController::class, 'getKelurahan'])->name('admin.getKelurahan');
+    Route::post('/admin_kecamatan/update-status', [HasilSetoranController::class, 'updateStatus'])
+        ->name('admin_kecamatan.updateStatus');
 
     // EXPORT DATA EXCEL
     Route::get('/download-excel/{filename}', [HasilSetoranController::class, 'downloadExcel'])->name('admin_kecamatan.report.excel.download');
@@ -221,3 +229,20 @@ Route::middleware(['auth', 'role:admin_kecamatan'])->group(function () {
     // REKAP KIRIM FILE
     Route::get('admin_kecamatan/rekap-info/file', [FileController::class, 'index'])->name('admin_kecamatan.rekap-info');
 });
+
+Route::middleware(['auth', 'role:admin_kabupaten'])->group(function () {
+    Route::get('admin_kabupaten/dashboard', [AdminKabupatenDashboardController::class, 'index'])->name('admin_kabupaten.index');
+
+    // SETOR
+    Route::get('admin_kabupaten/data-setor', [SetorController::class, 'index'])->name('admin_kabupaten.data-setor');
+    Route::post('/admin_kecamatan/update-status', [SetorController::class, 'updateStatus'])
+        ->name('admin_kecamatan.updateStatus');
+
+    // REKAP
+    Route::get('admin_kabupaten/rekap-index', [RekapController::class, 'index'])->name('admin_kabupaten.rekap');
+});
+
+// Route::get('/test-wa', function (FonnteService $fonnteService) {
+//     $fonnteService->sendWhatsAppMessage('085866090206', 'Coba kirim pesan dari Laravel via Fonnte');
+//     return 'Pesan dikirim!';
+// });

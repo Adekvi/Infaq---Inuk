@@ -105,6 +105,8 @@
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-primary mt-3 mr-2">Save</button>
+                            <a href="{{ url('superadmin/master-data/user') }}"
+                                class="btn btn-secondary mt-3 mr-2">Kembali</a>
                         </form>
                     </div>
                 </div>

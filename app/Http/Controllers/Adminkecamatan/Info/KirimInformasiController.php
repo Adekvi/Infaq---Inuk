@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Adminkecamatan\Info;
+namespace App\Http\Controllers\AdminKecamatan\Info;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pesan\WhatsappLog;
 use App\Models\User;
-use App\Models\Pesan\WhastappLog;
-use App\Services\TwilioService;
+use App\Services\FonnteService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -16,11 +15,11 @@ use Illuminate\Support\Facades\Storage;
 
 class KirimInformasiController extends Controller
 {
-    protected $twilioService;
+    protected $fonnteService; // Ubah nama properti
 
-    public function __construct(TwilioService $twilioService)
+    public function __construct(FonnteService $fonnteService)
     {
-        $this->twilioService = $twilioService;
+        $this->fonnteService = $fonnteService;
         $this->middleware(function ($request, $next) {
             if (Auth::user()->role !== 'admin_kecamatan') {
                 abort(403, 'Akses ditolak. Hanya petugas yang diizinkan.');
@@ -93,8 +92,10 @@ class KirimInformasiController extends Controller
         }
 
         // Buat URL publik untuk file PDF
-        $mediaUrl = 'https://2c4584481b18.ngrok-free.app/storage/laporan/' . $filename;
-        // $mediaUrl = asset('storage/laporan/' . $filename);
+        $mediaUrl = asset('storage/laporan/' . $filename);
+        if (strpos($mediaUrl, 'http://') === 0) {
+            $mediaUrl = str_replace('http://', 'https://', $mediaUrl);
+        }
         Log::info('URL publik untuk file PDF dibuat.', ['mediaUrl' => $mediaUrl]);
 
         // Ambil pengguna dengan role admin_kabupaten
@@ -151,7 +152,7 @@ class KirimInformasiController extends Controller
                     'mediaUrl' => $mediaUrl,
                 ]);
 
-                $response = $this->twilioService->sendWhatsAppMessage($toNumber, $message, $mediaUrl);
+                $success = $this->fonnteService->sendWhatsAppMessage($toNumber, $message, $mediaUrl);
 
                 // Simpan log pengiriman
                 WhatsappLog::create([
@@ -160,23 +161,22 @@ class KirimInformasiController extends Controller
                     'message' => $message,
                     'filename' => $filename,
                     'filepath' => $filepath,
-                    'status' => $response['success'] ? 'sent' : 'failed',
-                    'twilio_sid' => $response['success'] ? $response['sid'] : null,
-                    'error_message' => $response['success'] ? null : $response['error'],
+                    'status' => $success ? 'sent' : 'failed',
+                    'twilio_sid' => null, // Fonnte tidak menggunakan SID
+                    'error_message' => $success ? null : 'Gagal mengirim pesan via Fonnte',
                 ]);
 
                 $results[] = [
                     'id_user' => $user->id,
                     'username' => $user->username,
-                    'status' => $response['success'] ? 'sent' : 'failed',
-                    'error' => $response['success'] ? null : $response['error']
+                    'status' => $success ? 'sent' : 'failed',
+                    'error' => $success ? null : 'Gagal mengirim pesan via Fonnte'
                 ];
 
                 Log::info('Pengiriman selesai.', [
                     'id_user' => $user->id,
                     'username' => $user->username,
-                    'status' => $response['success'] ? 'sent' : 'failed',
-                    'twilio_sid' => $response['success'] ? $response['sid'] : null,
+                    'status' => $success ? 'sent' : 'failed',
                 ]);
             } catch (\Exception $e) {
                 $errorMessage = 'Gagal mengirim pesan: ' . $e->getMessage();
@@ -311,7 +311,6 @@ class KirimInformasiController extends Controller
             'query' => $request->query(),
         ]);
 
-
         // Data untuk dropdown filter
         $months = collect(range(1, 12))->mapWithKeys(fn($m) => [$m => Carbon::create()->month($m)->translatedFormat('F')]);
         $years = range(now()->year, now()->year - 10);
@@ -326,8 +325,6 @@ class KirimInformasiController extends Controller
             ->paginate($lembar, ['*'], 'halaman', $halaman)
             ->appends(['cari' => $cari, 'lembar' => $lembar]);
 
-        // dd($laporan);
-        // Log untuk debugging
         Log::info('Paginasi Data Laporan', [
             'total' => $laporan->total(),
             'per_page' => $laporan->perPage(),

@@ -14,4 +14,9 @@ class Pengirimaninfaq extends Model
     {
         return $this->belongsTo(User::class, 'id_user', 'id');
     }
+
+    public function penerimaans()
+    {
+        return $this->belongsToMany(Penerimaan::class, 'pengirimanpenerimaans', 'pengiriman_id', 'penerimaan_id');
+    }
 }

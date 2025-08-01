@@ -50,7 +50,8 @@
                                     </div>
                                 </div>
                                 <span class="fw-semibold d-block mb-1">Total Donasi Tahun {{ now()->year }}</span>
-                                <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i></small>
+                                <small class="text-success fw-semibold"><i
+                                        class="bx bx-up-arrow-alt"></i>Nominal</small>
                                 <h6 class="card-title mb-2">
                                     <strong>Rp {{ number_format($total_donasi_tahun, 0, ',', '.') }}</strong>
                                 </h6>
@@ -73,7 +74,8 @@
                                 </div>
                                 <span class="fw-semibold d-block mb-1">Total Donasi Bulan
                                     {{ now()->translatedFormat('F') }}</span>
-                                <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i></small>
+                                <small class="text-success fw-semibold"><i
+                                        class="bx bx-up-arrow-alt"></i>Nominal</small>
                                 <h6 class="card-title mb-2">
                                     <strong>Rp
                                         {{ number_format($total_donasi_per_bulan[now()->translatedFormat('F')] ?? 0, 0, ',', '.') }}</strong>
@@ -96,6 +98,44 @@
                                 @forelse ($rekap_per_rw as $data)
                                     <div class="mb-2">
                                         <strong>RW {{ $data->Rw ?? '-' }}</strong>
+                                        <div class="d-flex flex-column flex-md-row justify-content-between">
+                                            <div>
+                                                <span>
+                                                    {{ number_format($data->jumlah_donatur_mengirim, 0, ',', '.') }}
+                                                    dari {{ number_format($data->total_donatur, 0, ',', '.') }} donatur
+                                                    ({{ number_format($data->persentase, 2) }}%)
+                                                </span>
+                                            </div>
+                                            <div class="text-md-end">
+                                                <span>
+                                                    Rp {{ number_format($data->total_donasi, 0, ',', '.') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <p class="mb-0 text-center">Tidak ada data untuk bulan ini</p>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6 order-2 order-md-3 order-lg-2 mb-4">
+                <div class="card">
+                    <div class="row row-bordered g-0">
+                        <div class="col-md-12">
+                            <h6 class="card-header m-0 me-2 pb-3">
+                                <strong>
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    Rekap Donasi per Kelurahan</strong>
+                                <hr>
+                            </h6>
+                            <div class="card-body">
+                                @forelse ($rekap_per_kelurahan as $data)
+                                    <div class="mb-2">
+                                        <strong>Kelurahan
+                                            {{ $data->nama_kelurahan ?? ($data->id_kelurahan ?? '-') }}</strong>
                                         <div class="d-flex flex-column flex-md-row justify-content-between">
                                             <div>
                                                 <span>

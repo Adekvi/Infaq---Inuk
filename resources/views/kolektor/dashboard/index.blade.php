@@ -15,7 +15,7 @@
                                             <i class="fa-solid fa-temperature-three-quarters"></i> Sedang Aktif
                                         </div>
                                     @endif
-                                    <strong>Donasi {{ $jumlahDonatur }} dari donatur {{ $totalTarget }}
+                                    <strong>Donasi {{ $jumlahDonatur }} dari donatur {{ $jumlahDonatur }}
                                         ({{ number_format($persentase, 2) }}%)</strong><br>
                                     {{-- <strong>Rp {{ number_format($totalDonasi, 0, ',', '.') }}</strong> --}}
                                 </p>
@@ -59,7 +59,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title d-flex align-items-start justify-content-between">
-                                    <i class="fa-solid fa-calculator fa-2x text-warning"></i>
+                                    <i class="fa-solid fa-money-check-dollar fa-2x text-warning"></i>
                                     <div class="dropdown">
                                         <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown"
                                             aria-haspopup="true" aria-expanded="false">
@@ -67,13 +67,13 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Total Donatur</span>
+                                <span class="fw-semibold d-block mb-1">Total Donasi</span>
                                 <h5 class="card-title mb-2">
                                     <strong>
-                                        {{ $totalDonatur ?? '-' }}
+                                        Rp {{ number_format($totalDonasi ?? 0, 0, ',', '.') ?? '-' }}
                                     </strong>
                                 </h5>
-                                <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
+                                <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>Nominal
                                 </small>
                             </div>
                         </div>
@@ -85,8 +85,48 @@
                 <div class="card">
                     <div class="row row-bordered g-0">
                         <div class="col-md-12">
-                            <h5 class="card-header m-0 me-2 pb-3">Grafik Pembayaran</h5>
-                            <div id="totalRevenueChart" class="px-2"></div>
+                            <h6 class="card-header m-0 me-2 pb-3">
+                                <strong>
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    Rekap Donasi per RW</strong>
+                                <hr>
+                            </h6>
+                            <div class="card-body">
+                                @forelse ($rekap_per_rw as $data)
+                                    <div class="mb-2">
+                                        @php
+                                            $rw = $data->Rw;
+
+                                            if (is_array($rw)) {
+                                                $rw = $rw[0];
+                                            } elseif (is_string($rw) && Str::startsWith($rw, '[')) {
+                                                // Kalau masih string JSON, decode dulu
+                                                $decoded = json_decode($rw, true);
+                                                $rw = is_array($decoded) ? $decoded[0] ?? '-' : $rw;
+                                            }
+                                        @endphp
+
+                                        <strong>RW {{ $rw ?? '-' }}</strong>
+
+                                        <div class="d-flex flex-column flex-md-row justify-content-between">
+                                            <div>
+                                                <span>
+                                                    {{ number_format($data->jumlah_donatur_mengirim, 0, ',', '.') }}
+                                                    dari {{ number_format($data->total_donatur, 0, ',', '.') }} donatur
+                                                    ({{ number_format($data->persentase, 2) }}%)
+                                                </span>
+                                            </div>
+                                            <div class="text-md-end">
+                                                <span>
+                                                    Rp {{ number_format($data->total_donasi, 0, ',', '.') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <p class="mb-0 text-center">Tidak ada data untuk bulan ini</p>
+                                @endforelse
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -98,7 +138,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title d-flex align-items-start justify-content-between">
-                                    <i class="fa-solid fa-notes-medical fa-2x text-info"></i>
+                                    <i class="fa-solid fa-user-lock fa-2x text-info"></i>
                                     <div class="dropdown">
                                         <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown"
                                             aria-haspopup="true" aria-expanded="false">
@@ -106,14 +146,14 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Total Infaq</span>
-                                <h5 class="card-title mb-2">Rp.
+                                <span class="fw-semibold d-block mb-1">Total Donatur</span>
+                                <h5 class="card-title mb-2">
                                     <strong>
-                                        {{-- {{ number_format($total_infaq ?? 0, 0, ',', '.') ?? '-' }} --}}
+                                        {{ $jumlahDonatur ?? '-' }}
                                     </strong>
                                 </h5>
-                                <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
-                                    Total Keseluruhan</small>
+                                <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>Donatur
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -121,7 +161,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title d-flex align-items-start justify-content-between">
-                                    <i class="fa-solid fa-file-signature fa-2x text-success"></i>
+                                    <i class="fa-solid fa-hand-holding-dollar fa-2x text-success"></i>
                                     <div class="dropdown">
                                         <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown"
                                             aria-haspopup="true" aria-expanded="false">
@@ -129,10 +169,10 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Jumlah Infaq disetor</span>
-                                <h5 class="card-title mb-2">Rp.
+                                <span class="fw-semibold d-block mb-1">Donasi Disetor</span>
+                                <h5 class="card-title mb-2">
                                     <strong>
-                                        {{-- {{ number_format($total_setor ?? 0, 0, ',', '.') ?? '-' }} --}}
+                                        Rp {{ number_format($donasiDisetor ?? 0, 0, ',', '.') ?? '-' }}
                                     </strong>
                                 </h5>
                                 <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>

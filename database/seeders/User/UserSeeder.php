@@ -25,7 +25,7 @@ class UserSeeder extends Seeder
                 'id' => 2,
                 'id_setting' => '4',
                 'username' => 'adminkabupaten',
-                'no_hp' => '085866090206',
+                'no_hp' => '088866090204',
                 'password' => bcrypt('1'),
                 'role' => 'admin_kabupaten',
             ],

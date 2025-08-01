@@ -24,4 +24,9 @@ class Penerimaan extends Model
     {
         return $this->hasMany(Pengirimaninfaq::class, 'id_plot', 'id');
     }
+
+    public function pengiriman()
+    {
+        return $this->belongsToMany(PengirimanInfaq::class, 'pengirimanpenerimaans', 'penerimaan_id', 'pengiriman_id');
+    }
 }

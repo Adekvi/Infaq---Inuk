@@ -45,12 +45,14 @@ class DataExcel implements FromCollection, WithHeadings, WithStyles
             return [
                 'No' => $index + 1,
                 'Nama Kolektor' => $item->user->username ?? '-',
-                'Tanggal Setor' => $item->tglSetor ? Carbon::parse($item->tglSetor)->format('d-m-Y') : '-',
+                'Tanggal Kirim' => $item->tglSetor ? Carbon::parse($item->tglSetor)->format('d-m-Y') : '-',
                 'Kecamatan' => $item->plotting->kecamatan->nama_kecamatan ?? '-',
-                'Kelurahan' => $item->plotting->kelurahan->first()->nama_kelurahan ?? '-',
+                'Kelurahan' => $item->plotting->kelurahan->nama_kelurahan ?? '-',
                 'RT/RW' => ($item->Rt ?? '-') . '/' . ($item->Rw ?? '-'),
+                'Nominal Infaq' => 'Rp. ' . number_format($item->nominal ?? 0, 0, ',', '.'),
                 'Jumlah' => 'Rp. ' . number_format($item->jumlah ?? 0, 0, ',', '.'),
-                'Nominal' => 'Rp. ' . number_format($item->nominal ?? 0, 0, ',', '.'),
+                'Nama Bank' => $item->namaBank ?? '-',
+                'Rekening' => $item->Rekening ?? '-',
             ];
         });
 
@@ -62,8 +64,10 @@ class DataExcel implements FromCollection, WithHeadings, WithStyles
             'Kecamatan' => '',
             'Kelurahan' => '',
             'RT/RW' => '',
-            'Jumlah' => 'Total:',
-            'Nominal' => 'Rp. ' . number_format($totalNominal, 0, ',', '.'),
+            'Nominal' => '',
+            'Nama Bank' => '',
+            'Rekening' => 'Total:',
+            'Jumlah' => 'Rp. ' . number_format($totalNominal ?? 0, 0, ',', '.'),
         ]);
 
         return $collection;
@@ -76,11 +80,13 @@ class DataExcel implements FromCollection, WithHeadings, WithStyles
                 'No',
                 'Nama Kolektor',
                 'Tanggal Setor',
-                'Wilayah',
+                'Wilayah Infaq',
                 '',
                 '',
+                'Nominal Infaq',
                 'Jumlah',
-                'Nominal',
+                'Nama Bank',
+                'Rekening',
             ],
             [
                 '',
@@ -89,6 +95,8 @@ class DataExcel implements FromCollection, WithHeadings, WithStyles
                 'Kecamatan',
                 'Kelurahan',
                 'RT/RW',
+                '',
+                '',
                 '',
                 '',
             ],
@@ -125,9 +133,9 @@ class DataExcel implements FromCollection, WithHeadings, WithStyles
         $sheet->insertNewRowBefore(1, 2); // Tambahkan 2 baris kosong di atas
 
         // Set judul di baris pertama
-        $sheet->mergeCells('A1:H1');
+        $sheet->mergeCells('A1:J1');
         $sheet->setCellValue('A1', $this->title());
-        $sheet->getStyle('A1:H1')->applyFromArray([
+        $sheet->getStyle('A1:J1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'size' => 14,
@@ -140,7 +148,7 @@ class DataExcel implements FromCollection, WithHeadings, WithStyles
         ]);
 
         // Style untuk header (sekarang di baris 3 dan 4)
-        $sheet->getStyle('A3:H4')->applyFromArray([
+        $sheet->getStyle('A3:J4')->applyFromArray([
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
                 'startColor' => [
@@ -169,7 +177,7 @@ class DataExcel implements FromCollection, WithHeadings, WithStyles
         $sheet->mergeCells('D3:F3');
 
         // Menggabungkan sel secara vertikal untuk kolom No, Nama Kolektor, Tanggal Setor, Jumlah, Nominal
-        $columnsToMerge = ['A', 'B', 'C', 'G', 'H'];
+        $columnsToMerge = ['A', 'B', 'C', 'G', 'H', 'I', 'J'];
         foreach ($columnsToMerge as $column) {
             $sheet->mergeCells("{$column}3:{$column}4");
         }
@@ -197,8 +205,10 @@ class DataExcel implements FromCollection, WithHeadings, WithStyles
             'D' => 20,  // Kecamatan
             'E' => 20,  // Kelurahan
             'F' => 10,  // RT/RW
-            'G' => 10,  // Jumlah
-            'H' => 15,  // Nominal
+            'G' => 20,  // Jumlah
+            'H' => 20,  // Nominal
+            'I' => 20,  // Nominal
+            'J' => 20,  // Nominal
         ];
         foreach ($columnWidths as $column => $width) {
             $sheet->getColumnDimension($column)->setWidth($width);

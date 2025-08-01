@@ -75,6 +75,8 @@ class TempatController extends Controller
         $plotting = $query->orderBy('plottings.id', 'desc')->paginate($entries, ['*'], 'page', $page);
         $plotting->appends(['search' => $search, 'entries' => $entries, 'kecamatan' => $kecamatan, 'kelurahan' => $kelurahan]);
 
+        // dd($plotting);
+
         // Transformasi JSON
         foreach ($plotting as $item) {
             $item->Rt = json_decode($item->Rt, true) ? implode(' - ', json_decode($item->Rt, true)) : '-';
@@ -107,14 +109,10 @@ class TempatController extends Controller
 
     public function store(Request $request)
     {
-        // Debugging input (uncomment untuk uji coba)
-        // dd($request->all());
-
         // Validasi input
         $validator = Validator::make($request->all(), [
             'id_kecamatan' => 'required|exists:db_kecamatans,id',
-            'kelurahans' => 'required|array',
-            'kelurahans.*' => 'exists:db_kelurahans,id',
+            'id_kelurahan' => 'required|exists:db_kelurahans,id', // Pastikan hanya satu ID
             'rt' => 'required|array',
             'rt.*' => 'required|regex:/^[0-9]{1,3}$/',
             'rw' => 'required|array',
@@ -130,19 +128,18 @@ class TempatController extends Controller
 
         // Ambil data dari request
         $kecamatanId = $request->input('id_kecamatan');
-        $kelurahanIds = $request->input('kelurahans');
+        $kelurahanId = $request->input('id_kelurahan'); // Ubah ke single value
         $rts = $request->input('rt');
         $rws = $request->input('rw');
 
-        // Pastikan jumlah RT dan RW sesuai dengan jumlah kelurahan
-        if (count($rts) !== count($rws) || count($rts) < count($kelurahanIds)) {
+        // Pastikan jumlah RT dan RW sesuai
+        if (count($rts) !== count($rws)) {
             Log::error('Jumlah RT/RW tidak sesuai', [
                 'rt_count' => count($rts),
                 'rw_count' => count($rws),
-                'kelurahan_count' => count($kelurahanIds),
             ]);
             return redirect()->back()
-                ->withErrors(['rt' => 'Jumlah RT dan RW tidak sesuai dengan jumlah kelurahan yang dipilih.'])
+                ->withErrors(['rt' => 'Jumlah RT dan RW tidak sesuai.'])
                 ->withInput();
         }
 
@@ -153,19 +150,17 @@ class TempatController extends Controller
             // Simpan data plotting
             $plotting = Plotting::create([
                 'id_user' => Auth::id(),
-                'id_datadiri' => $dataDiri ?? null,
+                'id_datadiri' => $dataDiri ? $dataDiri->id : null,
                 'id_kecamatan' => $kecamatanId,
+                'id_kelurahan' => $kelurahanId, // Simpan single value
                 'Rt' => json_encode($rts),
                 'Rw' => json_encode($rws),
             ]);
 
-            // Sinkronkan kelurahan
-            $plotting->kelurahan()->sync($kelurahanIds);
-
             Log::info('Data plotting tersimpan', [
                 'plotting_id' => $plotting->id,
                 'kecamatan_id' => $kecamatanId,
-                'kelurahan_ids' => $kelurahanIds,
+                'kelurahan_id' => $kelurahanId,
                 'rt' => $rts,
                 'rw' => $rws,
             ]);

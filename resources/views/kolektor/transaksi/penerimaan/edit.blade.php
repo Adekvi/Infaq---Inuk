@@ -64,7 +64,7 @@
                                                         value="{{ $item->nominal }}" oninput="updateSubTotal()">
                                                 </div>
                                             </div>
-                                            <div class="col-md-2 d-flex align-items-end">
+                                            <div class="col-md-2 d-flex align-items-end mt-2">
                                                 @if ($index == 0)
                                                     <button type="button" class="btn btn-primary w-100"
                                                         onclick="addFormRow()">

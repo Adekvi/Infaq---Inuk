@@ -22,7 +22,7 @@
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
                     @php
-                        use App\Models\Profil\DataDiri;
+                        use App\Models\Profil\Datadiri;
 
                         $user = Auth::user();
                         $datadiri = DataDiri::where('id_user', $user->id)->first();

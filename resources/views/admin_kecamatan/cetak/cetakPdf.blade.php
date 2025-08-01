@@ -137,11 +137,11 @@
 
                 $first = $hasilinfaq->first();
                 $kecamatan = Str::title($first->plotting?->kecamatan?->nama_kecamatan ?? '-');
-                $kelurahan = Str::title($first->plotting?->kelurahan?->first()?->nama_kelurahan ?? '-');
+                // $kelurahan = Str::title($first->plotting?->kelurahan?->nama_kelurahan ?? '-');
             @endphp
 
             <p>
-                {{ $kecamatan }}, {{ $kelurahan }}, Kabupaten Kudus
+                {{ $kecamatan }},{{-- $kelurahan --}} Kabupaten Kudus
             </p>
 
 
@@ -200,7 +200,7 @@
                     <td class="text-center">{{ Str::title($item->plotting->kecamatan->first()->nama_kecamatan ?? '-') }}
                     </td>
                     <td class="text-center">
-                        {{ Str::title($item->plotting->kelurahan->first()->nama_kelurahan ?? '-') }}</td>
+                        {{ Str::title($item->plotting->kelurahan->nama_kelurahan ?? '-') }}</td>
                     <td class="text-center">
                         {{ $item->Rt ?? '-' }} - {{ $item->Rw ?? '-' }}
                     </td>

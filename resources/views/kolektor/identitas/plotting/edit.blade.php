@@ -77,8 +77,8 @@
                                         class="btn btn-primary mt-3 mr-2">
                                         <i class="fa-solid fa-floppy-disk"></i> Simpan
                                     </button>
-                                    <a href="{{ route('kolektor.dashboard') }}" data-bs-toggle="tooltip" title="Kembali"
-                                        class="btn btn-secondary mt-3">
+                                    <a href="{{ url('kolektor/plotting-index') }}" data-bs-toggle="tooltip"
+                                        title="Kembali" class="btn btn-secondary mt-3">
                                         <i class="fa-solid fa-arrows-rotate"></i> Kembali
                                     </a>
                                 </div>

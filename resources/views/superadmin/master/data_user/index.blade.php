@@ -19,115 +19,192 @@
                                     <i class="bx bxs-file-plus"></i>
                                 </a>
                             </div>
-                            <hr style="height: 2px; border: none">
+                            <hr>
                         </div>
                         <div class="card-body">
                             <div
-                                class="page d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-3">
-                                {{-- Form kiri: Tampilkan & Filter Provinsi --}}
-                                <div class="d-flex align-items-end">
-                                    <form method="GET" action="{{ route('superadmin.master.user') }}"
-                                        class="d-flex align-items-end flex-wrap gap-2">
+                                class="page d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-3 flex-wrap">
+                                {{-- Form kiri: Tampilkan & Filter --}}
+                                <form method="GET" action="{{ route('superadmin.master.user') }}"
+                                    class="d-flex flex-wrap gap-3 align-items-end">
+                                    <input type="hidden" name="page" value="1">
 
-                                        <input type="hidden" name="page" value="1">
+                                    {{-- Tampilkan --}}
+                                    <div class="d-flex flex-column">
+                                        <label for="entries" class="form-label mb-1">Tampilkan:</label>
+                                        <select name="entries" id="entries" class="form-select form-select-sm"
+                                            style="width: 80px;" onchange="this.form.submit()">
+                                            <option value="10" {{ request('entries', 10) == 10 ? 'selected' : '' }}>
+                                                10</option>
+                                            <option value="25" {{ request('entries') == 25 ? 'selected' : '' }}>25
+                                            </option>
+                                            <option value="50" {{ request('entries') == 50 ? 'selected' : '' }}>50
+                                            </option>
+                                            <option value="100" {{ request('entries') == 100 ? 'selected' : '' }}>100
+                                            </option>
+                                        </select>
+                                    </div>
 
-                                        {{-- Tampilkan --}}
-                                        <div class="d-flex flex-column">
-                                            <label for="entries" class="form-label">Tampilkan:</label>
-                                            <select name="entries" id="entries" class="form-select form-select-sm"
-                                                style="width: 80px;" onchange="this.form.submit()">
-                                                <option value="10"
-                                                    {{ request('entries', 10) == 10 ? 'selected' : '' }}>10</option>
-                                                <option value="25" {{ request('entries') == 25 ? 'selected' : '' }}>
-                                                    25</option>
-                                                <option value="50" {{ request('entries') == 50 ? 'selected' : '' }}>
-                                                    50</option>
-                                                <option value="100"
-                                                    {{ request('entries') == 100 ? 'selected' : '' }}>100</option>
-                                            </select>
+                                    {{-- Role --}}
+                                    @php
+                                        $roleList = ['admin_kabupaten', 'admin_kecamatan', 'kolektor'];
+                                    @endphp
+                                    <div class="d-flex flex-column">
+                                        <label for="roles" class="form-label mb-1">Role:</label>
+                                        <select name="roles" id="roles" class="form-select form-select-sm"
+                                            style="width: 200px;">
+                                            <option value="">-- Semua Role --</option>
+                                            @foreach ($roleList as $role)
+                                                <option value="{{ $role }}"
+                                                    {{ request('roles') == $role ? 'selected' : '' }}>
+                                                    {{ ucfirst($role) }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    {{-- Jabatan --}}
+                                    <div class="d-flex flex-column">
+                                        <label for="jabatan" class="form-label mb-1">Jabatan:</label>
+                                        <select name="jabatan" id="jabatan" class="form-select form-select-sm"
+                                            style="width: 200px;">
+                                            <option value="">-- Pilih Jabatan --</option>
+                                            @foreach ($setting as $set)
+                                                <option value="{{ $set->namasetting }}"
+                                                    {{ $jabatan == $set->namasetting ? 'selected' : '' }}>
+                                                    {{ $set->namasetting }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    {{-- Tombol --}}
+                                    <div class="d-flex flex-column">
+                                        <label class="form-label mb-1">Aksi</label>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-sm btn-primary"
+                                                data-bs-toggle="tooltip" title="Filter Data">
+                                                <i class="bx bxs-filter-alt"></i> Filter
+                                            </button>
+                                            <a href="{{ route('superadmin.master.user') }}"
+                                                class="btn btn-sm btn-secondary" data-bs-toggle="tooltip"
+                                                title="Reset Filter">
+                                                <i class="bx bx-reset"></i> Reset
+                                            </a>
                                         </div>
-
-                                        <!-- Filter Jabatan -->
-                                        <div class="d-flex align-items-end gap-2 flex-wrap">
-
-                                            {{-- Dropdown Role --}}
-                                            @php
-                                                $roleList = ['admin_kabupaten', 'admin_kecamatan', 'kolektor']; // Sesuaikan dengan role yang kamu punya
-                                            @endphp
-                                            <div class="d-flex flex-column">
-                                                <label for="roles" class="form-label">Role:</label>
-                                                <select name="roles" id="roles" class="form-select form-select-sm"
-                                                    style="width: 200px;">
-                                                    <option value="">-- Semua Role --</option>
-                                                    @foreach ($roleList as $role)
-                                                        <option value="{{ $role }}"
-                                                            {{ request('roles') == $role ? 'selected' : '' }}>
-                                                            {{ ucfirst($role) }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
-                                            <div class="d-flex flex-column">
-                                                <label for="jabatan" class="form-label">Jabatan:</label>
-                                                <select name="jabatan" id="jabatan" class="form-select form-select-sm"
-                                                    style="width: 200px;">
-                                                    <option value="">-- Pilih Jabatan --</option>
-                                                    @foreach ($setting as $set)
-                                                        <option value="{{ $set->namasetting }}"
-                                                            {{ $jabatan == $set->namasetting ? 'selected' : '' }}>
-                                                            {{ $set->namasetting }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
-                                            {{-- Tombol Filter & Reset --}}
-                                            <div class="flex-column">
-                                                <label class="form-label invisible">Aksi</label> {{-- Label tersembunyi agar sejajar --}}
-                                                <div class="d-flex gap-2">
-                                                    <button type="submit" data-bs-toggle="tooltip"
-                                                        data-bs-offset="0,11" data-bs-placement="top"
-                                                        data-bs-html="true"
-                                                        data-bs-original-title="<i class='bx bxs-filter-alt'></i><span>Filter Data</span>"
-                                                        class="btn btn-sm btn-primary">
-                                                        <i class="bx bxs-filter-alt"></i> Filter
-                                                    </button>
-                                                    <a href="{{ route('superadmin.master.user') }}"
-                                                        class="btn btn-sm btn-secondary" data-bs-toggle="tooltip"
-                                                        data-bs-offset="0,4" data-bs-placement="top" data-bs-html="true"
-                                                        title="<i class='bx bx-reset'></i> <span>Reset Filter</span>">
-                                                        <i class='bx bx-reset'></i> Reset
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </form>
-                                </div>
-
+                                    </div>
+                                </form>
 
                                 {{-- Form kanan: Search --}}
-                                <div class="w-80 w-md-auto">
-                                    <label class="form-label invisible">Aksi</label>
-                                    <form method="GET" action="{{ route('superadmin.master.user') }}"
-                                        class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
+                                <form method="GET" action="{{ route('superadmin.master.user') }}"
+                                    class="d-flex align-items-end gap-2 flex-wrap">
+                                    <div class="d-flex flex-column">
+                                        <label for="search" class="form-label mb-1">Cari</label>
+                                        <input type="text" name="search" value="{{ $search }}" id="search"
+                                            class="form-control form-control-sm" placeholder="Cari........">
+                                    </div>
 
-                                        <input type="text" name="search" value="{{ $search }}"
-                                            class="form-control form-control-sm flex-grow-1" placeholder="Cari........">
-
-                                        <button type="submit" data-bs-toggle="tooltip" data-bs-offset="0,11"
-                                            data-bs-placement="top" data-bs-html="true"
-                                            data-bs-original-title="<i class='bx bx-search'></i><span>Cari Data</span>"
-                                            class="btn btn-sm btn-primary flex-shrink-0">
-                                            <i class='bx bx-search-alt-2'></i> Cari
+                                    <div class="d-flex flex-column">
+                                        <label class="form-label mb-1 invisible">Aksi</label>
+                                        <button type="submit" class="btn btn-sm btn-primary" data-bs-toggle="tooltip"
+                                            title="Cari Data">
+                                            <i class="bx bx-search-alt-2"></i> Cari
                                         </button>
-                                    </form>
-                                </div>
+                                    </div>
+                                </form>
                             </div>
 
-                            <div class="table-responsive">
+                            <div class="row">
+                                @if ($user->isEmpty())
+                                    <div class="col-12">
+                                        <div class="alert alert-secondary text-center">Tidak ada data</div>
+                                    </div>
+                                @else
+                                    @foreach ($user as $index => $item)
+                                        <div class="col-md-6 col-lg-4 mb-4">
+                                            <div class="card shadow-sm h-100">
+                                                <div class="card-body">
+                                                    <h6 class="card-title">
+                                                        #{{ $user->firstItem() + $index }} -
+                                                        <i class="fas fa-user"></i>
+                                                        <span>{{ $item->username }}</span>
+                                                    </h6>
+                                                    <form method="POST"
+                                                        action="{{ url('superadmin/master-data/update-status') }}">
+                                                        @csrf
+                                                        <input type="hidden" name="id"
+                                                            value="{{ $item->id }}">
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                role="switch" id="status_{{ $item->id }}"
+                                                                name="status" value="A"
+                                                                onchange="this.form.submit()"
+                                                                {{ $item->status === 'A' ? 'checked' : '' }}>
+                                                            <label class="form-check-label"
+                                                                for="status_{{ $item->id }}">
+                                                                {{ $item->status === 'A' ? 'Aktif' : 'Nonaktif' }}
+                                                            </label>
+                                                        </div>
+                                                    </form>
+                                                    <hr>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 120px;"><strong>Jabatan</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->setting->namasetting ?? '-' }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 120px;"><strong>No. Hp</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->no_hp ?? '-' }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 120px;"><strong>Role</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->formatted_role ?? '-' }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 120px;"><strong>Email</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->email ?? '-' }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="card-footer bg-white border-top-0 d-flex justify-content-end gap-2">
+                                                    <a href="{{ url('superadmin/master-data/user/edit-data/' . $item->id) }}"
+                                                        class="btn btn-warning btn-sm d-flex align-items-center gap-1">
+                                                        <i class="bx bxs-pencil"></i> Edit
+                                                    </a>
+                                                    <button type="button"
+                                                        class="btn btn-danger btn-sm d-flex align-items-center gap-1"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#hapus{{ $item->id }}">
+                                                        <i class="bx bxs-trash"></i> Hapus
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+
+                                    {{-- Pagination --}}
+                                    <div class="col-12 mt-3 d-flex justify-content-end">
+                                        {{ $user->appends(['entries' => $entries])->links() }}
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- <div class="table-responsive">
                                 <table id="example" class="table table-bordered table-striped text-center">
                                     <thead class="table-primary">
                                         <tr>
@@ -199,7 +276,7 @@
                                 <div class="halaman d-flex justify-content-end mt-3 mt-3">
                                     {{ $user->appends(['entries' => $entries])->links() }}
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>
@@ -210,6 +287,58 @@
     @include('superadmin.master.data_user.hapus')
 
     @push('css')
+        <style>
+            .status-wrapper {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Segoe UI', sans-serif;
+            }
+
+            /* Hide the default checkbox */
+            .status-wrapper input[type="checkbox"] {
+                display: none;
+            }
+
+            /* Custom switch style */
+            .status-button {
+                position: relative;
+                display: inline-block;
+                width: 50px;
+                height: 26px;
+                background-color: #ccc;
+                border-radius: 50px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+
+            .status-button::after {
+                content: "";
+                position: absolute;
+                top: 3px;
+                left: 3px;
+                width: 20px;
+                height: 20px;
+                background-color: white;
+                border-radius: 50%;
+                transition: transform 0.3s;
+            }
+
+            /* Checked state */
+            .status-wrapper input[type="checkbox"]:checked+.status-button {
+                background-color: #696cff;
+            }
+
+            .status-wrapper input[type="checkbox"]:checked+.status-button::after {
+                transform: translateX(24px);
+            }
+
+            .status-text span {
+                font-size: 14px;
+                font-weight: 500;
+                color: #333;
+            }
+        </style>
     @endpush
 
     @push('js')

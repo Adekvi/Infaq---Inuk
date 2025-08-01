@@ -26,7 +26,7 @@
                                         style="width: 120px; height: 120px; object-fit: cover; border: 2px;">
 
                                 </div>
-                                <div class="col-md-9">
+                                <div class="col-md-10">
                                     <table class="table table-borderless">
                                         <tr>
                                             <td><strong>Username</strong></td>
@@ -71,9 +71,8 @@
                         </div>
                     </div>
                     <div class="mt-3 text-start">
-                        <a href="{{ route('kolektor.dashboard') }}" class="btn btn-primary">
-                            <i class="fa-solid fa-arrow-left"></i> Kembali ke
-                            Dashboard</a>
+                        <a href="{{ route('kolektor.dashboard') }}" class="btn btn-primary me-1">
+                            <i class="fa-solid fa-arrow-left"></i> Kembali</a>
                         <a href="{{ url('kolektor/identitas/edit/' . $datadiri->id) }}"
                             class="btn btn-outline-secondary">
                             <i class="fas fa-pencil"></i> Edit

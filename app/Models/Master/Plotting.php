@@ -36,8 +36,13 @@ class Plotting extends Model
 
     public function kelurahan()
     {
-        return $this->belongsToMany(Db_kelurahan::class, 'kelurahanplottings', 'plotting_id', 'kelurahan_id');
+        return $this->belongsTo(Db_kelurahan::class, 'id_kelurahan', 'id');
     }
+
+    // public function kelurahan()
+    // {
+    //     return $this->belongsToMany(Db_kelurahan::class, 'kelurahanplottings', 'plotting_id', 'kelurahan_id');
+    // }
 
     public function terima()
     {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Adminkecamatan\Rekap;
+namespace App\Http\Controllers\AdminKecamatan\Rekap;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;

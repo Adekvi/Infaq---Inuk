@@ -4,7 +4,7 @@
         <div class="row">
             <div class="col-lg-12 mb-4 order-0">
                 <div class="card-title">
-                    <h5 style="margin-bottom: 20px"><strong>Data Kecamatan</strong></h5>
+                    <h5><strong>Data Kecamatan</strong></h5>
                     <div class="mb-1" style="display: flex; justify-content: start">
                         <code>Tambah Data Kecamatan</code>
                     </div>
@@ -34,7 +34,11 @@
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-primary mt-3 mr-2">Save</button>
+                            <button type="submit" class="btn btn-primary mt-2 mr-2">
+                                <i class="fa-solid fa-floppy-disk"></i> Save</button>
+                            <a href="{{ url('superadmin/master-data/wilayah-kecamatan') }}"
+                                class="btn btn-secondary mt-2 mr-2">
+                                <i class="fa-solid fa-rotate-right"></i> Kembali</a>
                         </form>
                     </div>
                 </div>

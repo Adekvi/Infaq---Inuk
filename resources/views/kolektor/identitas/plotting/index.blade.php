@@ -108,14 +108,68 @@
                                 </div>
                             </div>
 
-                            <div class="table-responsive">
+                            <div class="row">
+                                @if ($plotting->isEmpty())
+                                    <div class="col-12">
+                                        <div class="alert alert-warning text-center">Tidak ada data</div>
+                                    </div>
+                                @else
+                                    @foreach ($plotting as $index => $item)
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <div class="card shadow-sm border-0 h-100">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">#{{ $plotting->firstItem() + $index }} -
+                                                        {{ $item->user->username ?? '-' }}</h5>
+
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 85px;"><strong>Kecamatan</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->kecamatan->nama_kecamatan ?? '-' }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 85px;"><strong>Kelurahan</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->kelurahan->nama_kelurahan ?? '-' }}
+                                                            {{-- @forelse ($item->kelurahan as $kel)
+                                                                {{ $kel->nama_kelurahan }}
+                                                            @empty
+                                                                <span>-</span>
+                                                            @endforelse --}}
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 85px;"><strong>RT/RW</strong></div>
+                                                        <span class="me-1">:</span>
+                                                        <div>{{ $item->Rt }}/{{ $item->Rw }}</div>
+                                                    </div>
+
+                                                    <a href="{{ url('kolektor/plotting-tempat/edit/' . $item->id) }}"
+                                                        class="btn btn-sm btn-warning mt-2">
+                                                        <i class="bx bxs-pencil"></i> Edit
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+
+                            <div class="d-flex justify-content-end mt-3">
+                                {{ $plotting->appends(['entries' => $entries])->links() }}
+                            </div>
+
+                            {{-- <div class="table-responsive">
                                 <table id="example" class="table table-striped table-bordered text-center"
                                     style="white-space: nowrap">
                                     <thead class="table-primary align-middle">
                                         <tr>
                                             <th rowspan="2">No</th>
                                             <th rowspan="2">Username</th>
-                                            {{-- <th rowspan="2">Jabatan</th> --}}
                                             <th colspan="2">Wilayah</th>
                                             <th rowspan="2">RT</th>
                                             <th rowspan="2">RW</th>
@@ -136,7 +190,6 @@
                                                 <tr>
                                                     <td>{{ $plotting->firstItem() + $index }}</td>
                                                     <td>{{ $item->user->username ?? '-' }}</td>
-                                                    {{-- <td>{{ $item->user->setting->namasetting ?? '-' }}</td> --}}
                                                     <td>{{ $item->kecamatan->nama_kecamatan ?? '-' }}</td>
                                                     <td>
                                                         @forelse ($item->kelurahan as $kel)
@@ -165,7 +218,7 @@
                                 <div class="halaman d-flex justify-content-end mt-3 mt-3">
                                     {{ $plotting->appends(['entries' => $entries])->links() }}
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>
@@ -174,6 +227,17 @@
     </div>
 
     @push('css')
+        <style>
+            .card .badge {
+                font-size: 0.85rem;
+                margin-right: 3px;
+            }
+
+            .card-title {
+                font-weight: bold;
+                font-size: 1.1rem;
+            }
+        </style>
     @endpush
 
     @push('js')
@@ -192,9 +256,10 @@
                         // Kirim permintaan AJAX untuk mendapatkan kelurahan
                         $.ajax({
                             url: '{{ route('kolektor.master.getKelurahan') }}',
-                            type: 'GET',
+                            type: 'POST',
                             data: {
-                                id_kecamatan: kecamatanId
+                                id_kecamatan: kecamatanId,
+                                _token: '{{ csrf_token() }}'
                             },
                             success: function(data) {
                                 // Isi dropdown kelurahan dengan data yang diterima

@@ -1,26 +1,26 @@
 <?php
 
-namespace App\Http\Controllers\Adminkecamatan\Pengiriman;
+namespace App\Http\Controllers\AdminKecamatan\Pengiriman;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\Admin\SendWhatsAppMessage;
+use App\Models\Role\Transaksi\PengirimanInfaq;
 use App\Models\Pesan\WhatsappLog;
-use App\Models\Role\Transaksi\Pengirimaninfaq;
-use App\Services\TwilioService;
-use Carbon\Carbon;
+use App\Services\FonnteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class SendController extends Controller
 {
-    protected $twilioService;
+    protected $fonnteService; // Ubah nama properti
 
-    public function __construct(TwilioService $twilioService)
+    public function __construct(FonnteService $fonnteService)
     {
-        $this->twilioService = $twilioService;
+        $this->fonnteService = $fonnteService;
         $this->middleware(function ($request, $next) {
             if (Auth::user()->role !== 'admin_kecamatan') {
                 abort(403, 'Akses ditolak. Hanya petugas yang diizinkan.');
@@ -61,182 +61,151 @@ class SendController extends Controller
 
     public function sendWhatsApp(Request $request)
     {
-        Log::info('Mulai kirim WhatsApp.', ['input' => $request->all()]);
+        Log::info('Mulai kirim WhatsApp.', ['input' => $request->except('file_kirim')]);
 
-        // Validasi input
+        // Validasi
         $validator = Validator::make($request->all(), [
-            'tglKirim' => 'required|date',
-            'namaPengirim' => 'required|string|max:255',
-            'namaPenerima' => 'required|string|max:255',
-            'no_hp' => 'required|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
+            'tglKirim'       => 'required|date',
+            'namaPengirim'   => 'required|string|max:255',
+            'namaPenerima'   => 'required|string|max:255',
+            'no_hp'          => 'required|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
             'nama_kecamatan' => 'required|string|max:255',
-            'pesan' => 'nullable|string|max:1600',
-            'file_kirim' => 'required|file|mimes:pdf,xls,xlsx|max:10240',
+            'pesan'          => 'nullable|string|max:1600',
+            'file_kirim'     => 'nullable|file|mimes:pdf,xls,xlsx|max:10240',
         ]);
 
         if ($validator->fails()) {
+            Log::info('Validasi gagal.', ['errors' => $validator->errors()->all()]);
             return back()->withErrors($validator)->withInput();
         }
 
+        Log::info('Validasi berhasil.');
+
         $file = $request->file('file_kirim');
-        $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9]/', '_', $file->getClientOriginalName());
+        $originalName = null;
+        $filename = null;
+        $tempPath = null;
+        $fileUrl = null;
 
-        // Simpan file sementara ke public/temp
-        $tempPath = 'temp/' . $filename;
-        Storage::disk('public')->put($tempPath, file_get_contents($file));
+        if ($file) {
+            $originalName = $file->getClientOriginalName(); // Misalnya: laporan_infaq.xlsx
+            $timestamp = time();
+            $filename = $timestamp . '_' . $originalName; // Simpan dengan nama unik namun tetap asli
+            $tempPath = 'uploads/' . $filename;
 
-        // URL publik sementara
-        $mediaUrl = asset('storage/' . $tempPath);
-        if (strpos($mediaUrl, 'http://') === 0) {
-            $mediaUrl = str_replace('http://', 'https://', $mediaUrl);
+            Log::info('Menyimpan file ke storage.', [
+                'originalName' => $originalName,
+                'filename' => $filename,
+                'tempPath' => $tempPath
+            ]);
+
+            Storage::disk('public')->put($tempPath, file_get_contents($file));
+
+            $appUrl = rtrim(config('app.url'), '/');
+            $fileUrl = $appUrl . '/storage/' . $tempPath;
+
+            Log::info('File URL disiapkan untuk pengiriman.', ['fileUrl' => $fileUrl]);
+        } else {
+            Log::info('Tidak ada file yang diupload.');
         }
 
         $tanggalKirim = Carbon::parse($request->tglKirim)->translatedFormat('d F Y');
 
-        // Pesan WhatsApp
-        $pesan = $request->pesan ??
+        $pesan = $request->pesan ?? (
             "Assalamuallaikum Wr. Wb.\n" .
             "Saya *{$request->namaPengirim}* dari kecamatan *{$request->nama_kecamatan}* melampirkan dokumen:\n" .
             "📅 Tanggal: {$tanggalKirim}\n" .
-            "📎 File: {$filename}\n" .
-            "Mohon dicek dan ditindaklanjuti.\nTerima kasih.";
+            "📎 File: " . ($originalName ?? '[Tidak Ada File]') . "\n" .
+            "Mohon dicek dan ditindaklanjuti.\nTerima kasih."
+        );
 
         $to = $this->formatPhoneNumber($request->no_hp);
 
         if (!$to) {
+            Log::warning('Nomor WhatsApp tidak valid.', ['no_hp' => $request->no_hp]);
+            if ($tempPath) {
+                Storage::disk('public')->delete($tempPath);
+            }
             return back()->with('error', 'Nomor WhatsApp tidak valid.');
         }
 
+        Log::info('Nomor tujuan sudah diformat.', ['to' => $to]);
+
+        // Simpan data awal ke pengirimaninfaqs dengan status Pending
+        Log::info('Menyimpan data awal ke pengirimaninfaqs.');
+        $infaq = PengirimanInfaq::create([
+            'id_user' => Auth::id(),
+            'nama_kecamatan' => $request->nama_kecamatan,
+            'namaPengirim' => $request->namaPengirim,
+            'namaPenerima' => $request->namaPenerima,
+            'no_hp' => $to,
+            'tglKirim' => $request->tglKirim,
+            'pesan' => $pesan,
+            'file_kirim' => $filename,
+            'status' => 'Pending',
+        ]);
+
         try {
-            $response = $this->twilioService->sendWhatsAppMessage($to, $pesan, $mediaUrl);
+            Log::info('Mengirim pesan ke FonnteService...');
+            $response = $this->fonnteService->sendWhatsAppMessage($to, $pesan, $fileUrl);
+            Log::info('Response dari FonnteService diterima.', ['response' => $response]);
 
-            // Hapus file temp setelah kirim
-            Storage::disk('public')->delete($tempPath);
+            $status = $response ? 'Terkirim' : 'Gagal';
 
-            // Catat log
+            // Perbarui status di pengirimaninfaqs
+            $infaq->update(['status' => $status]);
+
+            // Simpan log ke WhatsappLog
             WhatsappLog::create([
                 'id_user' => Auth::id(),
                 'to_number' => $to,
                 'message' => $pesan,
                 'filename' => $filename,
                 'filepath' => $tempPath,
-                'status' => $response['success'] ? 'sent' : 'failed',
-                'twilio_sid' => $response['sid'] ?? null,
-                'error_message' => $response['error'] ?? null,
+                'status' => $status,
+                'twilio_sid' => null,
+                'error_message' => $status === 'Gagal' ? 'Gagal mengirim pesan via Fonnte' : null,
+            ]);
+            Log::info('WhatsappLog disimpan ke database.');
+
+            // Hapus file setelah pengiriman
+            if ($tempPath) {
+                Log::info('Menghapus file.', ['path' => $tempPath]);
+                Storage::disk('public')->delete($tempPath);
+            }
+
+            Log::info('Proses pengiriman selesai dengan status: ' . $status);
+
+            return redirect()->route('admin_kecamatan.info-kirim')
+                ->with('success', 'Pesan berhasil dikirim.');
+        } catch (\Exception $e) {
+            Log::error('Gagal mengirim pesan via Fonnte: ' . $e->getMessage(), [
+                'to' => $to,
+                'fileUrl' => $fileUrl
             ]);
 
-            return $response['success']
-                ? redirect()->route('admin_kecamatan.info-kirim')->with('success', 'Pesan berhasil dikirim.')
-                : back()->with('error', 'Gagal mengirim: ' . $response['error']);
-        } catch (\Exception $e) {
-            Log::error('Error WhatsApp: ' . $e->getMessage());
+            // Perbarui status ke Gagal
+            $infaq->update(['status' => 'Gagal']);
 
-            return back()->with('error', 'Gagal mengirim: ' . $e->getMessage());
+            // Simpan log ke WhatsappLog
+            WhatsappLog::create([
+                'id_user' => Auth::id(),
+                'to_number' => $to,
+                'message' => $pesan,
+                'filename' => $filename,
+                'filepath' => $tempPath,
+                'status' => 'Gagal',
+                'twilio_sid' => null,
+                'error_message' => 'Gagal mengirim: ' . $e->getMessage(),
+            ]);
+
+            // Hapus file jika ada
+            if ($tempPath) {
+                Log::info('Menghapus file setelah gagal.', ['path' => $tempPath]);
+                Storage::disk('public')->delete($tempPath);
+            }
+
+            return back()->with('error', 'Gagal mengirim pesan: ' . $e->getMessage());
         }
     }
-
-    // public function sendWhatsApp(Request $request)
-    // {
-    //     Log::info('Memulai proses pengiriman WhatsApp.', [
-    //         'input' => $request->all(),
-    //     ]);
-
-    //     // Validasi input
-    //     $validator = Validator::make($request->all(), [
-    //         'tglKirim' => 'required|date',
-    //         'namaPengirim' => 'required|string|max:255',
-    //         'namaPenerima' => 'required|string|max:255',
-    //         'no_hp' => 'required|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
-    //         'nama_kecamatan' => 'required|string|max:255',
-    //         'pesan' => 'nullable|string|max:1600',
-    //         'file_kirim' => 'nullable|file|mimes:pdf,jpeg,png,gif|max:10240',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         Log::error('Validasi gagal.', ['errors' => $validator->errors()]);
-    //         return redirect()->back()->withErrors($validator)->withInput();
-    //     }
-
-    //     // Format nomor
-    //     $toNumber = $this->formatPhoneNumber($request->no_hp);
-    //     if (!$toNumber) {
-    //         Log::error('Nomor WhatsApp tidak valid.', ['no_hp' => $request->no_hp]);
-    //         return redirect()->back()->with('error', 'Nomor WhatsApp tidak valid.');
-    //     }
-
-    //     // Simpan file
-    //     $file = $request->file('file_kirim');
-    //     $filename = time() . '_' . $file->getClientOriginalName();
-    //     $filepath = $file->storeAs('uploads', $filename, 'public');
-
-    //     if (!$filepath) {
-    //         Log::error('Gagal menyimpan file.', ['filename' => $filename]);
-    //         return redirect()->back()->with('error', 'Gagal menyimpan file.');
-    //     }
-
-    //     // Buat mediaUrl
-    //     $mediaUrl = env('PUBLIC_URL') . Storage::url($filepath);
-    //     Log::info('URL publik untuk file dibuat.', ['mediaUrl' => $mediaUrl]);
-
-    //     // Set pesan default jika tidak ada input
-    //     $pesan = $request->pesan ?? "Assalamuallaikum Wr, Wb. Admin Kabupaten,\n" .
-    //         "Mohon Maaf mengganggu waktunya,\n" .
-    //         "Sebagai laporan, saya *{$request->namaPengirim}* dari ranting/kecamatan *{$request->nama_kecamatan}* melampirkan sebanyak dokumen data dengan rincian sebagai berikut,\n" .
-    //         " -\n -\n -\n" .
-    //         "Mohon untuk dapat dicek dan ditindaklanjuti.\nTerima kasih. 🙏\n\n" .
-    //         "Wassalamu'alaikum Wr. Wb.";
-
-    //     // Kirim WhatsApp via Twilio
-    //     try {
-    //         Log::info('Mengirim pesan WhatsApp.', [
-    //             'to_number' => $toNumber,
-    //             'message' => $pesan,
-    //             'mediaUrl' => $mediaUrl,
-    //         ]);
-
-    //         $response = $this->twilioService->sendWhatsAppMessage(
-    //             $toNumber,
-    //             $pesan,
-    //             'https://limewire.com/d/p1MMp#lfMObflOQX'
-    //             // null
-    //         );
-
-    //         if (!$response['success']) {
-    //             Log::error('Gagal mengirim pesan WhatsApp.', ['error' => $response['error']]);
-    //             return redirect()->back()->with('error', 'Gagal mengirim pesan: ' . $response['error']);
-    //         }
-
-    //         // ✅ Kirim berhasil → simpan ke DB
-    //         $pengiriman = PengirimanInfaq::create([
-    //             'id_user' => Auth::user()->id,
-    //             'nama_kecamatan' => $request->nama_kecamatan,
-    //             'namaPengirim' => $request->namaPengirim,
-    //             'namaPenerima' => $request->namaPenerima,
-    //             'no_hp' => $toNumber,
-    //             'tglKirim' => $request->tglKirim,
-    //             'pesan' => $pesan,
-    //             'file_kirim' => $filepath,
-    //             'status' => 'sent',
-    //         ]);
-
-    //         WhatsappLog::create([
-    //             'id_user' => Auth::user()->id,
-    //             'to_number' => $toNumber,
-    //             'message' => $pesan,
-    //             'filename' => $filename,
-    //             'filepath' => $filepath,
-    //             'status' => 'sent',
-    //             'twilio_sid' => $response['sid'],
-    //             'error_message' => null,
-    //         ]);
-
-    //         return redirect()->route('admin_kecamatan.info-kirim')->with('success', 'Pesan dan dokumen berhasil dikirim.');
-    //     } catch (\Exception $e) {
-    //         $errorMessage = 'Gagal mengirim pesan: ' . $e->getMessage();
-    //         Log::error($errorMessage, ['to_number' => $toNumber]);
-
-    //         // Jangan simpan ke DB jika gagal
-    //         return redirect()->back()->with('error', $errorMessage);
-    //     }
-    // }
 }

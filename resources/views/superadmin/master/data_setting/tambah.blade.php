@@ -28,7 +28,10 @@
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-primary mt-3 mr-2">Save</button>
+                            <button type="submit" class="btn btn-primary mt-2 mr-2">
+                                <i class="fa-solid fa-floppy-disk"></i> Save</button>
+                            <a href="{{ url('superadmin/master-data/setting') }}" class="btn btn-secondary mt-2 mr-2">
+                                <i class="fa-solid fa-rotate-right"></i> Kembali</a>
                         </form>
                     </div>
                 </div>

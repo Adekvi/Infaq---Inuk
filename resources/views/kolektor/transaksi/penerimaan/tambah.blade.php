@@ -14,79 +14,55 @@
                         <form action="{{ url('kolektor/penerimaan/input-infaq/tambah') }}" method="POST"
                             enctype="multipart/form-data">
                             @csrf
+                            @if ($errors->any())
+                                <div class="alert alert-danger">
+                                    <ul>
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                            @if (session('success'))
+                                <div class="alert alert-success">
+                                    {{ session('success') }}
+                                </div>
+                            @endif
                             <div class="row mb-3">
                                 <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="kecamatan" class="form-label">Kecamatan</label>
-                                        <input type="text"
-                                            value="{{ $terima->kecamatan->nama_kecamatan ?? 'Tidak tersedia' }}"
-                                            class="form-control mt-2 mb-2" readonly>
-                                    </div>
+                                    <label for="kecamatan" class="form-label">Kecamatan</label>
+                                    <select name="kecamatan" id="kecamatan" class="form-select select2" required>
+                                        <option value="">-- Pilih Kecamatan --</option>
+                                        @foreach ($kecamatans as $idKec => $items)
+                                            <option value="{{ $idKec }}">
+                                                {{ $items->first()->kecamatan->nama_kecamatan }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
+
                                 <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="kelurahan" class="form-label">Kelurahan</label>
-                                        <input type="text"
-                                            value="{{ $terima->kelurahan->first()->nama_kelurahan ?? 'Tidak tersedia' }}"
-                                            class="form-control mt-2 mb-2" readonly>
-                                    </div>
+                                    <label for="kelurahan" class="form-label">Kelurahan</label>
+                                    <select name="kelurahan" id="kelurahan" class="form-select select2">
+                                        <option value="">-- Pilih Kelurahan --</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div class="row">
-                                <h5 class="mt-3 mb-3">
-                                    <li>Nominal Infaq</li>
-                                </h5>
-                                <hr>
-                                <div id="formContainer">
-                                    <div class="row align-items-end mb-3" data-row-id="0">
-                                        <div class="col-md-2">
-                                            <label for="Rt_0" class="form-label">RT</label>
-                                            <input type="text" name="Rt[]" id="Rt_0" class="form-control"
-                                                placeholder="RT" value="{{ json_decode($terima->Rt)[0] ?? '-' }}"
-                                                required>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label for="Rw_0" class="form-label">RW</label>
-                                            <input type="text" name="Rw[]" id="Rw_0" class="form-control"
-                                                placeholder="RW" value="{{ json_decode($terima->Rw)[0] ?? '-' }}"
-                                                required>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label for="nominal_0" class="form-label">Nominal</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light"><b>Rp.</b></span>
-                                                <input type="number" name="nominal[]" id="nominal_0"
-                                                    class="form-control minggu-input" placeholder="0" min="0"
-                                                    oninput="updateSubTotal()">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-2 d-flex align-items-end">
-                                            <button type="button" class="btn btn-primary w-100" onclick="addFormRow()">
-                                                <i class="fas fa-plus me-1"></i> Tambah
-                                            </button>
-                                        </div>
-                                    </div>
+
+                            <hr>
+
+                            <div id="formContainer"></div>
+
+                            <h5 class="mt-3 mb-2">Sub Total</h5>
+                            <hr>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><b>Rp.</b></span>
+                                    <input type="number" name="jumlah" id="jumlah" class="form-control" readonly>
                                 </div>
-                                <h5 class="mt-3 mb-3">
-                                    <li>Sub Total</li>
-                                </h5>
-                                <hr>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="jumlah" class="form-label">Jumlah</label>
-                                        <div class="input-group mb-2 mt-2">
-                                            <span class="input-group-text" style="background: rgb(228, 228, 228);">
-                                                <b>Rp.</b>
-                                            </span>
-                                            <input type="number" name="jumlah" id="jumlah" class="form-control"
-                                                placeholder="0" readonly>
-                                        </div>
-                                        @error('jumlah')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
+                                <small class="text-muted">Total: <span id="jumlahFormatted">Rp 0</span></small>
                             </div>
+
                             <div class="mt-4">
                                 <button type="submit" data-bs-toggle="tooltip" title="Simpan"
                                     class="btn btn-primary me-2">
@@ -112,72 +88,155 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
         <script>
-            let rowCount = 1;
+            $(document).ready(function() {
+                let rowCount = 0;
 
-            // Format angka ke format mata uang Indonesia (Rp. 1.000.000)
-            function formatRupiah(angka) {
-                return new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0
-                }).format(angka);
-            }
+                // Format Rupiah
+                function formatRupiah(angka) {
+                    return new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0
+                    }).format(angka);
+                }
 
-            function addFormRow() {
-                const formContainer = document.getElementById('formContainer');
-                const newRow = document.createElement('div');
-                newRow.className = 'row mb-3';
-                newRow.setAttribute('data-row-id', rowCount);
-                newRow.innerHTML = `
-                    <div class="col-md-2">
-                        <label for="Rt_${rowCount}" class="form-label">RT</label>
-                        <input type="text" name="Rt[]" id="Rt_${rowCount}" class="form-control" placeholder="RT" required>
-                    </div>
-                    <div class="col-md-2">
-                        <label for="Rw_${rowCount}" class="form-label">RW</label>
-                        <input type="text" name="Rw[]" id="Rw_${rowCount}" class="form-control" placeholder="RW" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="nominal_${rowCount}" class="form-label">Nominal</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><b>Rp.</b></span>
-                            <input type="number" name="nominal[]" id="nominal_${rowCount}" class="form-control minggu-input" placeholder="0" min="0" oninput="updateSubTotal()">
+                // Hitung total nominal
+                function updateSubTotal() {
+                    let total = 0;
+                    $('input[name="nominal[]"]').each(function() {
+                        let val = parseFloat($(this).val()) || 0;
+                        total += val;
+                    });
+                    $('#jumlah').val(total);
+                    $('#jumlahFormatted').text(formatRupiah(total));
+                }
+
+                // Tambah baris RT/RW
+                function addFormRow(rt = '', rw = '', nominal = '', isFirst = false) {
+                    let buttonHTML = isFirst ?
+                        `<button type="button" class="btn btn-primary w-100 mt-4" id="addRowBtn">
+                                <i class="fas fa-plus"></i> Tambah
+                        </button>` :
+                        `<button type="button" class="btn btn-danger w-100 mt-4 removeRow">
+                                <i class="fas fa-trash"></i> Hapus
+                        </button>`;
+
+                    let newRow = `
+                        <div class="row align-items-end mb-2" data-row-id="${rowCount}">
+                            <div class="col-md-2">
+                                <label>RT</label>
+                                <input type="text" name="Rt[]" class="form-control" value="${rt}" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label>RW</label>
+                                <input type="text" name="Rw[]" class="form-control" value="${rw}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label>Nominal</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><b>Rp.</b></span>
+                                    <input type="number" name="nominal[]" class="form-control" value="${nominal}" min="0" oninput="updateSubTotal()" required>
+                                </div>
+                            </div>
+                            <div class="col-md-2 d-flex">
+                                ${buttonHTML}
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-danger w-100" onclick="removeFormRow(${rowCount})">
-                            <i class="fas fa-trash me-1"></i> Hapus
-                        </button>
-                    </div>
-                `;
-                formContainer.appendChild(newRow);
-                rowCount++;
-                updateSubTotal();
-            }
+                    `;
 
-            function removeFormRow(rowId) {
-                const row = document.querySelector(`[data-row-id="${rowId}"]`);
-                if (row) {
-                    row.remove();
+                    $('#formContainer').append(newRow);
+                    rowCount++;
                     updateSubTotal();
                 }
-            }
 
-            function updateSubTotal() {
-                const nominalInputs = document.querySelectorAll('input[name="nominal[]"]');
-                let total = 0;
-                nominalInputs.forEach(input => {
-                    const value = parseFloat(input.value) || 0;
-                    if (value >= 0) { // Pastikan nilai tidak negatif
-                        total += value;
+                // Generate form RT/RW dari array
+                function generateForm(rtArr, rwArr) {
+                    $('#formContainer').empty();
+                    rowCount = 0;
+
+                    if (rtArr.length > 0) {
+                        addFormRow(rtArr[0] || '', rwArr[0] || '', '', true);
+                        for (let i = 1; i < rtArr.length; i++) {
+                            addFormRow(rtArr[i] || '', rwArr[i] || '', '', false);
+                        }
+                    } else {
+                        addFormRow('', '', '', true);
+                    }
+                }
+
+                // Hapus baris RT/RW
+                $(document).on('click', '.removeRow', function() {
+                    $(this).closest('.row').remove();
+                    updateSubTotal();
+                });
+
+                // Tambah baris RT/RW
+                $(document).on('click', '#addRowBtn', function() {
+                    addFormRow('', '', '', false);
+                });
+
+                // Load kelurahan via AJAX
+                $('#kecamatan').on('change', function() {
+                    let idKecamatan = $(this).val();
+                    $('#kelurahan').empty().append('<option value="">-- Pilih Kelurahan --</option>');
+                    $('#formContainer').empty();
+
+                    if (idKecamatan) {
+                        $.ajax({
+                            url: "{{ route('ajax.getKelurahan') }}",
+                            type: "POST",
+                            data: {
+                                id_kecamatan: idKecamatan,
+                                _token: "{{ csrf_token() }}"
+                            },
+                            success: function(res) {
+                                $('#kelurahan').empty();
+
+                                if (res.length > 1) {
+                                    // Jika ada lebih dari 1 kelurahan → tampilkan pilihan
+                                    $('#kelurahan').append(
+                                        '<option value="">-- Pilih Kelurahan --</option>');
+                                    res.forEach(function(kel) {
+                                        $('#kelurahan').append(
+                                            `<option value="${kel.id}" 
+                                    data-rt='${JSON.stringify(kel.rt)}' 
+                                    data-rw='${JSON.stringify(kel.rw)}'>
+                                    ${kel.nama_kelurahan}
+                                </option>`
+                                        );
+                                    });
+                                } else if (res.length === 1) {
+                                    // Jika hanya 1 kelurahan → langsung pilih dan generate form
+                                    let kel = res[0];
+                                    $('#kelurahan').append(
+                                        `<option value="${kel.id}" 
+                                data-rt='${JSON.stringify(kel.rt)}' 
+                                data-rw='${JSON.stringify(kel.rw)}' 
+                                selected>
+                                ${kel.nama_kelurahan}
+                            </option>`
+                                    );
+                                    generateForm(kel.rt, kel.rw); // langsung generate form
+                                }
+                            }
+                        });
                     }
                 });
-                document.getElementById('jumlah').value = total;
-                document.getElementById('jumlahFormatted').textContent = formatRupiah(total);
-            }
 
-            // Inisialisasi total saat halaman dimuat
-            document.addEventListener('DOMContentLoaded', function() {
+                // Saat kelurahan dipilih → generate form RT/RW
+                $('#kelurahan').on('change', function() {
+                    let selected = $(this).find(':selected');
+                    let rt = JSON.parse(selected.attr('data-rt') || '[]');
+                    let rw = JSON.parse(selected.attr('data-rw') || '[]');
+                    generateForm(rt, rw);
+                });
+
+                // Hitung total nominal realtime
+                $(document).on('input', 'input[name="nominal[]"]', function() {
+                    updateSubTotal();
+                });
+
+                // Jalankan awal
                 updateSubTotal();
             });
         </script>

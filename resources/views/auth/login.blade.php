@@ -80,12 +80,12 @@
                 @csrf
                 <div class="mb-3">
                   <label for="" class="form-label">Username / No. Hp</label>
-                  <input type="text" id="identifier" name="identifier" class="form-control" placeholder="Username atau No. Hp"
+                  <input type="text" id="identifier" name="identifier" class="form-control mb-2" placeholder="Username atau No. Hp"
                     value="{{ old('identifier') ?: Cookie::get('identifier') }}" required autofocus />
-                @error('identifier')
-    <span class="text-dark">
-                                                                                                <strong>{{ $message }}</strong>
-                                                                                            </span>
+                    @error('identifier')
+    <span class="text-danger">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
 @enderror
                 </div>
                 <div class="mb-3 form-password-toggle">

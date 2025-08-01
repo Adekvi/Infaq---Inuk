@@ -9,6 +9,7 @@ use App\Jobs\GeneratePdfReport;
 use App\Models\Master\Wilayah\Db_kecamatan;
 use App\Models\Master\Wilayah\Db_kelurahan;
 use App\Models\Role\Transaksi\Penerimaan;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -179,7 +181,18 @@ class ReportDataController extends Controller
             $message = "Tidak ada data yang tersedia.";
         }
 
+        // dd($hasil);
+
         $kecamatans = Db_kecamatan::where('status', 'Aktif')->get();
+
+        // Ambil no_hp_admin dari session jika ada, fallback ke admin kecamatan
+        $noHp = Session::get('no_hp_admin');
+        if (!$noHp) {
+            $adminKecamatan = User::where('role', 'admin_kecamatan')->first();
+            $noHp = $adminKecamatan ? $adminKecamatan->no_hp : null;
+        }
+
+        // dd($noHp);
 
         // Ambil nilai unik Rt dan Rw dari penerimaans
         $rts = Penerimaan::where('id_user', Auth::user()->id)
@@ -197,7 +210,7 @@ class ReportDataController extends Controller
             ->sort()
             ->values();
 
-        return view('kolektor.report.index', compact('hasil', 'search', 'entries', 'kecamatans', 'showAll', 'periode', 'startDate', 'endDate', 'month', 'year', 'message', 'rts', 'rws'));
+        return view('kolektor.report.index', compact('hasil', 'search', 'entries', 'kecamatans', 'showAll', 'periode', 'startDate', 'endDate', 'month', 'year', 'message', 'rts', 'rws', 'noHp'));
     }
 
     /**

@@ -8,67 +8,65 @@
                         <h5><strong>Rekap Pengiriman Infaq</strong></h5>
                     </div>
 
-                    <div class="row">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="mb-1" style="display: flex; justify-content: space-between">
-                                    <h5>Tabel Data</h5>
-                                </div>
-                                <hr style="height: 2px; border: none">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="mb-1" style="display: flex; justify-content: space-between">
+                                <h5>Tabel Data</h5>
                             </div>
-                            <div class="card-body">
-                                <div class="page mb-3">
-                                    <div class="row g-2 align-items-end justify-content-between flex-wrap">
-                                        <div class="col-xl-auto col-lg-12">
-                                            <form method="GET" action="{{ route('kolektor.hasil-setoran') }}"
-                                                class="d-flex align-items-end flex-wrap gap-2">
-                                                <input type="hidden" name="page" value="1">
+                            <hr style="height: 2px; border: none">
+                        </div>
+                        <div class="card-body">
+                            <div class="page mb-3">
+                                <div class="row g-2 align-items-end justify-content-between flex-wrap">
+                                    <div class="col-xl-auto col-lg-12">
+                                        <form method="GET" action="{{ route('kolektor.hasil-setoran') }}"
+                                            class="d-flex align-items-end flex-wrap gap-2">
+                                            <input type="hidden" name="page" value="1">
 
-                                                <!-- Jumlah Tampilkan -->
-                                                <div>
-                                                    <select name="entries" id="entries"
-                                                        class="form-select form-select-sm" style="width: 60px;"
-                                                        onchange="this.form.submit()">
-                                                        <option value="10"
-                                                            {{ request('entries', 10) == 10 ? 'selected' : '' }}>10
+                                            <!-- Jumlah Tampilkan -->
+                                            <div>
+                                                <select name="entries" id="entries" class="form-select form-select-sm"
+                                                    style="width: 60px;" onchange="this.form.submit()">
+                                                    <option value="10"
+                                                        {{ request('entries', 10) == 10 ? 'selected' : '' }}>10
+                                                    </option>
+                                                    <option value="25"
+                                                        {{ request('entries') == 25 ? 'selected' : '' }}>25</option>
+                                                    <option value="50"
+                                                        {{ request('entries') == 50 ? 'selected' : '' }}>50</option>
+                                                    <option value="100"
+                                                        {{ request('entries') == 100 ? 'selected' : '' }}>100
+                                                    </option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Kecamatan -->
+                                            <div>
+                                                <label for="kecamatan" class="form-label">Kecamatan:</label>
+                                                <select name="kecamatan" id="kecamatan"
+                                                    class="form-select form-select-sm" style="width: 170px;">
+                                                    <option value="">-- Pilih Kecamatan --</option>
+                                                    @foreach ($kecamatans as $kec)
+                                                        <option value="{{ $kec->id }}"
+                                                            {{ request('kecamatan') == $kec->id ? 'selected' : '' }}>
+                                                            {{ $kec->nama_kecamatan }}
                                                         </option>
-                                                        <option value="25"
-                                                            {{ request('entries') == 25 ? 'selected' : '' }}>25</option>
-                                                        <option value="50"
-                                                            {{ request('entries') == 50 ? 'selected' : '' }}>50</option>
-                                                        <option value="100"
-                                                            {{ request('entries') == 100 ? 'selected' : '' }}>100
-                                                        </option>
-                                                    </select>
-                                                </div>
+                                                    @endforeach
+                                                </select>
+                                            </div>
 
-                                                <!-- Kecamatan -->
-                                                <div>
-                                                    <label for="kecamatan" class="form-label">Kecamatan:</label>
-                                                    <select name="kecamatan" id="kecamatan"
-                                                        class="form-select form-select-sm" style="width: 170px;">
-                                                        <option value="">-- Pilih Kecamatan --</option>
-                                                        @foreach ($kecamatans as $kec)
-                                                            <option value="{{ $kec->id }}"
-                                                                {{ request('kecamatan') == $kec->id ? 'selected' : '' }}>
-                                                                {{ $kec->nama_kecamatan }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
+                                            <!-- Kelurahan -->
+                                            <div>
+                                                <label for="kelurahan" class="form-label">Kelurahan:</label>
+                                                <select name="kelurahan" id="kelurahan"
+                                                    class="form-select form-select-sm" style="width: 170px;">
+                                                    <option value="">-- Pilih Kelurahan --</option>
+                                                    <!-- Kelurahan akan diisi melalui JavaScript -->
+                                                </select>
+                                            </div>
 
-                                                <!-- Kelurahan -->
-                                                <div>
-                                                    <label for="kelurahan" class="form-label">Kelurahan:</label>
-                                                    <select name="kelurahan" id="kelurahan"
-                                                        class="form-select form-select-sm" style="width: 170px;">
-                                                        <option value="">-- Pilih Kelurahan --</option>
-                                                        <!-- Kelurahan akan diisi melalui JavaScript -->
-                                                    </select>
-                                                </div>
-
-                                                <!-- RT -->
-                                                {{-- <div>
+                                            <!-- RT -->
+                                            {{-- <div>
                                                     <label for="rt" class="form-label mb-1">RT:</label>
                                                     <select name="rt" id="rt"
                                                         class="form-control form-control-sm" style="width: 90px;">
@@ -97,45 +95,141 @@
                                                     </select>
                                                 </div> --}}
 
-                                                <!-- Tombol -->
-                                                <div class="d-flex gap-2 align-items-end">
-                                                    <button type="submit" class="btn btn-sm btn-primary"
-                                                        data-bs-toggle="tooltip" title="Filter">
-                                                        <i class="bx bxs-filter-alt"></i>
-                                                    </button>
-                                                    <a href="{{ route('kolektor.hasil-setoran') }}"
-                                                        class="btn btn-sm btn-secondary" data-bs-toggle="tooltip"
-                                                        title="Reset Filter">
-                                                        <i class='bx bx-reset'></i>
-                                                    </a>
-                                                    <!-- Tombol Tampilkan Semua -->
-                                                    <button type="submit" name="show_all"
-                                                        value="{{ $showAll ? '0' : '1' }}" class="btn btn-sm btn-info"
-                                                        data-bs-toggle="tooltip" title="Semua Data">
-                                                        <i class="fas fa-file-lines"></i>
-                                                        {{ $showAll ? 'Data Hari Ini' : 'Semua Data' }}
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-
-                                        <!-- Pencarian -->
-                                        <div class="col-xl-auto col-lg-12 mt-2 mt-xl-0">
-                                            <form method="GET" action="{{ route('kolektor.hasil-setoran') }}"
-                                                class="d-flex align-items-end gap-2">
-                                                <input type="text" name="search" value="{{ $search }}"
-                                                    class="form-control form-control-sm" style="width: 180px;"
-                                                    placeholder="Cari...">
+                                            <!-- Tombol -->
+                                            <div class="d-flex gap-2 align-items-end">
                                                 <button type="submit" class="btn btn-sm btn-primary"
-                                                    data-bs-toggle="tooltip" title="Cari">
-                                                    <i class='bx bx-search-alt-2'></i> Cari
+                                                    data-bs-toggle="tooltip" title="Filter">
+                                                    <i class="bx bxs-filter-alt"></i>
                                                 </button>
-                                            </form>
+                                                <a href="{{ route('kolektor.hasil-setoran') }}"
+                                                    class="btn btn-sm btn-secondary" data-bs-toggle="tooltip"
+                                                    title="Reset Filter">
+                                                    <i class='bx bx-reset'></i>
+                                                </a>
+                                                <!-- Tombol Tampilkan Semua -->
+                                                <button type="submit" name="show_all"
+                                                    value="{{ $showAll ? '0' : '1' }}" class="btn btn-sm btn-info"
+                                                    data-bs-toggle="tooltip" title="Semua Data">
+                                                    <i class="fas fa-file-lines"></i>
+                                                    {{ $showAll ? 'Data Hari Ini' : 'Semua Data' }}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    <!-- Pencarian -->
+                                    <div class="col-xl-auto col-lg-12 mt-2 mt-xl-0">
+                                        <form method="GET" action="{{ route('kolektor.hasil-setoran') }}"
+                                            class="d-flex align-items-end gap-2">
+                                            <input type="text" name="search" value="{{ $search }}"
+                                                class="form-control form-control-sm" style="width: 180px;"
+                                                placeholder="Cari...">
+                                            <button type="submit" class="btn btn-sm btn-primary"
+                                                data-bs-toggle="tooltip" title="Cari">
+                                                <i class='bx bx-search-alt-2'></i> Cari
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                @if ($hasil->isEmpty())
+                                    <div class="col-12">
+                                        <div class="alert alert-warning text-center">Tidak ada data</div>
+                                    </div>
+                                @else
+                                    <?php
+                                    if (!function_exists('rupiah')) {
+                                        function Rupiah($angka)
+                                        {
+                                            return 'Rp ' . number_format((float) $angka, 0, ',', '.');
+                                        }
+                                    }
+                                    ?>
+                                    @foreach ($hasil as $index => $item)
+                                        @if ($item->status == 'Kirim')
+                                            <div class="col-md-6 col-lg-4 mb-3">
+                                                <div class="card shadow-sm border-1 h-100">
+                                                    <div class="card-body">
+                                                        <h5 class="card-title">#{{ $hasil->firstItem() + $index }} -
+                                                            {{ $item->namaBank ?? '-' }}</h5>
+                                                        <p class="mb-1"><strong>Tanggal Setor:</strong>
+                                                            {{ \Carbon\Carbon::parse($item->created_at ?? '-')->format('d-m-Y') }}
+                                                        </p>
+                                                        <p class="mb-1"><strong>Rekening:</strong>
+                                                            {{ $item->rekening ?? '-' }}</p>
+                                                        <p class="mb-1"><strong>Nominal:</strong>
+                                                            {{ Rupiah($item->nominal) }}</p>
+                                                        <p class="mb-1"><strong>Jumlah:</strong>
+                                                            {{ Rupiah($item->jumlah) }}</p>
+                                                        <p class="mb-2"><strong>Bukti Transfer:</strong><br>
+                                                            @if ($item->bukti_foto)
+                                                                @php
+                                                                    $fileExtension = pathinfo(
+                                                                        Storage::path($item->bukti_foto),
+                                                                        PATHINFO_EXTENSION,
+                                                                    );
+                                                                    $isImage = in_array(strtolower($fileExtension), [
+                                                                        'jpg',
+                                                                        'jpeg',
+                                                                        'png',
+                                                                    ]);
+                                                                @endphp
+                                                                <a href="#"
+                                                                    class="btn btn-outline-primary btn-sm mt-1 view-media"
+                                                                    data-bs-toggle="modal" data-bs-target="#mediaModal"
+                                                                    data-src="{{ Storage::url($item->bukti_foto) }}"
+                                                                    data-type="{{ $isImage ? 'image' : 'file' }}">
+                                                                    <i
+                                                                        class="fas {{ $isImage ? 'fa-image' : 'fa-file' }}"></i>
+                                                                    Lihat Bukti
+                                                                </a>
+                                                            @else
+                                                                <span class="text-muted">Tidak ada bukti</span>
+                                                            @endif
+                                                        </p>
+                                                    </div>
+                                                    <div class="card-footer bg-transparent border-0 text-end">
+                                                        @if ($item->status == 'Kirim')
+                                                            <span class="badge bg-success"><i
+                                                                    class="fas fa-circle-check me-1"></i>
+                                                                Terkirim</span>
+                                                        @else
+                                                            <span class="badge bg-warning text-dark"><i
+                                                                    class="fa-solid fa-hourglass-start me-1"></i>
+                                                                Pending</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                @endif
+                            </div>
+
+                            <!-- Modal untuk media (gambar/file) -->
+                            <div class="modal fade" id="mediaModal" tabindex="-1" role="dialog"
+                                aria-labelledby="mediaModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Pratinjau Bukti Transfer</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Tutup"></button>
+                                        </div>
+                                        <div class="modal-body text-center" id="mediaContent">
+                                            <!-- Konten dinamis -->
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
-                                <div class="table-responsive">
+                            <div class="d-flex justify-content-end mt-3">
+                                {{ $hasil->appends(['entries' => $entries])->links() }}
+                            </div>
+
+                            {{-- <div class="table-responsive">
                                     <table id="example" class="table table-striped table-bordered text-center"
                                         style="width:100%; white-space: nowrap">
                                         <thead class="table-primary text-center align-middle">
@@ -273,8 +367,7 @@
                                     <div class="halaman d-flex justify-content-end mt-2">
                                         {{ $hasil->appends(['entries' => $entries])->links() }}
                                     </div>
-                                </div>
-                            </div>
+                                </div> --}}
                         </div>
                     </div>
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Adminkecamatan\Setoran;
+namespace App\Http\Controllers\AdminKecamatan\Setoran;
 
 use App\Exports\AdminKecamatan\Laporan\HasilSetoranExcel;
 use App\Http\Controllers\Controller;
@@ -42,7 +42,7 @@ class HasilSetoranController extends Controller
     private function buildBaseQuery()
     {
         return Penerimaan::with(['user', 'plotting.kecamatan', 'plotting.kelurahan'])
-            ->where('status', 'Kirim');
+            ->where('status', 'Validasi');
     }
 
     private function applyPeriodFilter($query, Request $request): void
@@ -220,7 +220,7 @@ class HasilSetoranController extends Controller
         $endDate = $request->input('end_date');
         $month = $request->input('month');
         $year = $request->input('year');
-        $show_All = filter_var($request->input('show_all'), FILTER_VALIDATE_BOOLEAN);
+        $showAll = filter_var($request->input('show_all'), FILTER_VALIDATE_BOOLEAN);
 
         $query = $this->buildBaseQuery();
         $this->applyPeriodFilter($query, $request);
@@ -229,9 +229,7 @@ class HasilSetoranController extends Controller
 
         // Ambil data untuk Excel
         $data = $query->orderBy('id', 'desc')->get();
-        $hasData = $data->count() > 0;
-
-        if (!$hasData) {
+        if ($data->count() === 0) {
             Log::warning('No data found for Excel export', $request->all());
             return response()->json(['error' => 'Tidak ada data untuk diekspor.'], 400);
         }
@@ -244,7 +242,6 @@ class HasilSetoranController extends Controller
         $tanggal = $periode === 'custom' ? ($startDate . ' - ' . $endDate) : null;
         $months = $month ? Carbon::create()->month($month)->format('F') : null;
         $tahun = $year;
-        $showAll = $show_All; // Perbaiki variabel show_All menjadi showAll
 
         // Generate nama file berdasarkan periode
         $filename = 'Laporan_Data_';
@@ -261,7 +258,7 @@ class HasilSetoranController extends Controller
         } else {
             $filename .= 'Harian_' . Carbon::today()->format('Ymd');
         }
-        $filename .= '_' . now()->format('His') . '.xlsx'; // Tambahkan timestamp untuk keunikan
+        $filename .= '_' . now()->format('His') . '.xlsx';
 
         // Tentukan path penyimpanan
         $directory = 'public/admin_kecamatan/laporan/excel';
@@ -270,7 +267,7 @@ class HasilSetoranController extends Controller
         // Dispatch job untuk generate Excel
         GenerateExcelReport::dispatch([
             'hasilinfaq' => $data,
-            'dataIds' => $dataIds, // Tambahkan ID untuk pembaruan status
+            'dataIds' => $dataIds,
             'filterOption' => $filterOption,
             'tanggal' => $tanggal,
             'months' => $months,
@@ -334,10 +331,9 @@ class HasilSetoranController extends Controller
 
         // Ambil data untuk PDF
         $hasilinfaq = $query->orderBy('id', 'desc')->get();
-        $hasData = $hasilinfaq->count() > 0;
-
-        if (!$hasData) {
-            return redirect()->back()->withErrors(['export' => 'Tidak ada data untuk diekspor.']);
+        if ($hasilinfaq->count() === 0) {
+            Log::warning('No data found for PDF export', $request->all());
+            return response()->json(['error' => 'Tidak ada data untuk diekspor.'], 400);
         }
 
         // Ambil ID data untuk pembaruan status
@@ -348,23 +344,38 @@ class HasilSetoranController extends Controller
         $tanggal = $periode === 'custom' ? ($startDate . ' - ' . $endDate) : null;
         $months = $month ? Carbon::create()->month($month)->format('F') : null;
         $tahun = $year;
-        $show_All = $showAll;
 
-        // Generate filename
-        $filename = 'Laporan_Hasil_Setoran_' . now()->format('Ymd_His') . '.pdf';
+        // Generate nama file berdasarkan periode (sesuaikan dengan format Excel untuk konsistensi)
+        $filename = 'Laporan_Hasil_Setoran_';
+        if ($periode === 'custom' && $startDate && $endDate) {
+            $filename .= 'Tanggal_' . Carbon::parse($startDate)->format('Ymd') . '_to_' . Carbon::parse($endDate)->format('Ymd');
+        } elseif ($periode === 'monthly' && $month && $year) {
+            $filename .= 'Bulanan_' . $months . '_' . $year;
+        } elseif ($periode === 'quarterly' && $year) {
+            $filename .= 'Triwulan_' . $year;
+        } elseif ($periode === 'semiannual' && $year) {
+            $filename .= 'Semesteran_' . $year;
+        } elseif ($periode === 'yearly' && $year) {
+            $filename .= 'Tahunan_' . $year;
+        } else {
+            $filename .= 'Harian_' . Carbon::today()->format('Ymd');
+        }
+        $filename .= '_' . now()->format('His') . '.pdf';
+
+        // Tentukan path penyimpanan
         $directory = 'public/admin_kecamatan/laporan/pdf';
         $storagePath = $directory . '/' . $filename;
 
         // Dispatch job untuk generate PDF
         GeneratePdfReport::dispatch([
             'hasilinfaq' => $hasilinfaq,
-            'dataIds' => $dataIds, // Tambahkan ID untuk pembaruan status
+            'dataIds' => $dataIds,
             'filterOption' => $filterOption,
             'tanggal' => $tanggal,
             'month' => $month,
             'tahun' => $tahun,
             'months' => $months,
-            'show_All' => $show_All,
+            'showAll' => $showAll,
             'storagePath' => $storagePath,
             'filename' => $filename,
         ])->afterResponse();
@@ -378,22 +389,38 @@ class HasilSetoranController extends Controller
             'dataIds' => $dataIds
         ]);
 
-        // Kembalikan response dengan status pending
+        // Kembalikan respons JSON dengan status pending
         return response()->json([
-            'message' => 'Laporan sedang diproses. File akan tersedia di storage setelah selesai.',
+            'message' => 'Laporan PDF sedang diproses. File akan tersedia di storage setelah selesai.',
             'filename' => $filename,
             'path' => $storagePath
-        ]);
+        ], 200);
     }
 
     public function downloadPdf($filename)
     {
-        $storagePath = 'public/admin_kecamatan/laporan/pdf/' . $filename; // Tambahkan tanda '/'
-        Log::info('Attempting to download: ' . $storagePath);
+        $storagePath = 'public/admin_kecamatan/laporan/pdf/' . $filename;
+        Log::info('Attempting to download PDF: ' . $storagePath);
         if (!Storage::exists($storagePath)) {
-            Log::warning('File not found: ' . $storagePath);
+            Log::warning('PDF file not found: ' . $storagePath);
             return response()->json(['error' => 'File laporan belum tersedia atau tidak ditemukan.'], 404);
         }
-        return response()->download(storage_path('app/' . $storagePath), $filename, ['Content-Type' => 'application/pdf']);
+        return response()->download(storage_path('app/' . $storagePath), $filename, [
+            'Content-Type' => 'application/pdf'
+        ]);
+    }
+
+    public function updateStatus(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:penerimaans,id',
+            'status' => 'required|string'
+        ]);
+
+        $report = Penerimaan::findOrFail($request->id);
+        $report->status = $request->status;
+        $report->save();
+
+        return redirect()->back();
     }
 }

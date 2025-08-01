@@ -122,12 +122,12 @@
                 </li>
 
                 {{-- DATA MASTER PESAN --}}
-                <li class="menu-item {{ Request::is('superadmin/master-data/pesan*') ? 'active open' : '' }}">
+                {{-- <li class="menu-item {{ Request::is('superadmin/master-data/pesan*') ? 'active open' : '' }}">
                     <a href="{{ url('superadmin/master-data/pesan') }}" class="menu-link">
                         <i class="menu-icon tf-icons fa-solid fa-message"></i>
                         <div data-i18n="Analytics">Data Master Template Pesan</div>
                     </a>
-                </li>
+                </li> --}}
 
                 {{-- DATA MASTER REPORT --}}
                 {{-- <li class="menu-header small text-uppercase">
@@ -138,6 +138,75 @@
                         <i class="menu-icon tf-icons fa-solid fa-map-location-dot"></i>
                         <div data-i18n="Analytics">Data Master Plotting</div>
                     </a>
+                </li> --}}
+            @elseif (Auth::user()->role == 'admin_kabupaten')
+                <li class="menu-item active">
+                    <a href="{{ url('admin_kabupaten/dashboard') }}" class="menu-link">
+                        <i class="menu-icon tf-icons fa-solid fa-house"></i>
+                        <div data-i18n="Analytics">Dashboard</div>
+                    </a>
+                </li>
+
+                <li class="menu-header small text-uppercase">
+                    <span class="menu-header-text">Notifikasi</span>
+                </li>
+                <li class="menu-item {{ Request::is('admin_kabupaten/data-setor*') ? 'active open' : '' }}">
+                    <a href="{{ url('admin_kabupaten/data-setor') }}" class="menu-link">
+                        <i class="menu-icon tf-icons fa-solid fa-address-book"></i>
+                        <div data-i18n="Data Setor Infaq">Data Infaq Setor</div>
+                    </a>
+                </li>
+
+                {{-- <li class="menu-header small text-uppercase">
+                    <span class="menu-header-text">Rekapitulasi</span>
+                </li>
+                <li class="menu-item {{ Request::is('admin_kabupaten/rekap-index*') ? 'active open' : '' }}">
+                    <a href="{{ url('admin_kabupaten/rekap-index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons fas fa-file-pen"></i>
+                        <div data-i18n="Data Setor Infaq">Data Rekap</div>
+                    </a>
+                </li> --}}
+            @elseif (Auth::user()->role == 'admin_kecamatan')
+                <li class="menu-item {{ Request::is('admin_kecamatan/dashboard') ? 'active open' : '' }}">
+                    <a href="{{ url('admin_kecamatan/dashboard') }}" class="menu-link">
+                        <i class="menu-icon tf-icons fa-solid fa-house"></i>
+                        <div data-i18n="Dashboard">Dashboard</div>
+                    </a>
+                </li>
+
+                <li class="menu-header small text-uppercase">
+                    <span class="menu-header-text">Data Rekap</span>
+                </li>
+                <li class="menu-item {{ Request::is('admin_kecamatan/hasil-setoran*') ? 'active open' : '' }}">
+                    <a href="{{ url('admin_kecamatan/hasil-setoran/index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons fas fa-file-pen"></i>
+                        <div data-i18n="Data Setor Infaq">Data Laporan</div>
+                    </a>
+                </li>
+
+                <li class="menu-header small text-uppercase">
+                    <span class="menu-header-text">Laporan</span>
+                </li>
+                <li
+                    class="menu-item {{ Request::is('admin_kecamatan/info-kirim/index-tampil*') ? 'active open' : '' }}">
+                    <a href="{{ url('admin_kecamatan/info-kirim/index-tampil') }}" class="menu-link">
+                        <i class="menu-icon tf-icons fa-solid fa-file-lines"></i>
+                        <div data-i18n="Data Setor Infaq">Data Kirim Laporan</div>
+                    </a>
+                </li>
+
+                <li class="menu-header small text-uppercase">
+                    <span class="menu-header-text">Pengiriman</span>
+                </li>
+                <li class="menu-item {{ Request::is('admin_kecamatan/info-index*') ? 'active open' : '' }}">
+                    <a href="{{ url('admin_kecamatan/info-index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons fa-solid fa-bell"></i>
+                        <div data-i18n="Data Setor Infaq">Data Pengiriman</div>
+                    </a>
+                </li>
+
+                {{-- <li class="menu-header small text-uppercase">
+                    <span class="menu-header-text">Informasi</span>
                 </li> --}}
             @elseif (Auth::user()->role == 'kolektor')
                 <li class="menu-item active">
@@ -196,40 +265,6 @@
                         <div data-i18n="Analytics">Data Laporan</div>
                     </a>
                 </li>
-            @elseif (Auth::user()->role == 'admin_kecamatan')
-                <li class="menu-item {{ Request::is('admin_kecamatan/dashboard') ? 'active open' : '' }}">
-                    <a href="{{ url('admin_kecamatan/dashboard') }}" class="menu-link">
-                        <i class="menu-icon tf-icons fa-solid fa-house"></i>
-                        <div data-i18n="Dashboard">Dashboard</div>
-                    </a>
-                </li>
-
-                <li class="menu-header small text-uppercase">
-                    <span class="menu-header-text">Data Rekap</span>
-                </li>
-                <li class="menu-item {{ Request::is('admin_kecamatan/hasil-setoran*') ? 'active open' : '' }}">
-                    <a href="{{ url('admin_kecamatan/hasil-setoran/index') }}" class="menu-link">
-                        <i class="menu-icon tf-icons fas fa-file-pen"></i>
-                        <div data-i18n="Data Setor Infaq">Data Laporan</div>
-                    </a>
-                </li>
-                <li
-                    class="menu-item {{ Request::is('admin_kecamatan/info-kirim/index-tampil*') ? 'active open' : '' }}">
-                    <a href="{{ url('admin_kecamatan/info-kirim/index-tampil') }}" class="menu-link">
-                        <i class="menu-icon tf-icons fa-solid fa-file-lines"></i>
-                        <div data-i18n="Data Setor Infaq">Data Kirim Laporan</div>
-                    </a>
-                </li>
-                <li class="menu-item {{ Request::is('admin_kecamatan/info-index*') ? 'active open' : '' }}">
-                    <a href="{{ url('admin_kecamatan/info-index') }}" class="menu-link">
-                        <i class="menu-icon tf-icons fa-solid fa-bell"></i>
-                        <div data-i18n="Data Setor Infaq">Data Pengiriman</div>
-                    </a>
-                </li>
-
-                {{-- <li class="menu-header small text-uppercase">
-                    <span class="menu-header-text">Informasi</span>
-                </li> --}}
             @endif
         @endif
 

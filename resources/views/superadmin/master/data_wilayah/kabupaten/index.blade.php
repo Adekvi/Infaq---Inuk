@@ -5,7 +5,7 @@
             <div class="col-lg-12 mb-4 order-0">
                 <div class="pasien-bpjs">
                     <div class="card-title">
-                        <h5 style="margin-bottom: 20px"><strong>Data Kabupaten</strong></h5>
+                        <h5><strong>Data Kabupaten</strong></h5>
                     </div>
 
                     <div class="card">
@@ -79,7 +79,59 @@
                                 </div>
                             </div>
 
-                            <div class="table-responsive">
+                            <div class="row">
+                                @if ($kabupaten->isEmpty())
+                                    <div class="col-12">
+                                        <div class="alert alert-info text-center">Tidak ada data</div>
+                                    </div>
+                                @else
+                                    @foreach ($kabupaten as $index => $item)
+                                        <div class="col-md-6 col-lg-4 mb-4">
+                                            <div class="card shadow-sm border-1 h-100">
+                                                <div class="card-body">
+                                                    <h6 class="card-title mb-2">
+                                                        #{{ $kabupaten->firstItem() + $index }}</h6>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 80px;"><strong>Kode</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->id ?? '-' }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-1 d-flex">
+                                                        <div style="width: 80px;"><strong>Nama</strong>
+                                                        </div>
+                                                        <span class="me-1">:</span>
+                                                        <div>
+                                                            {{ $item->nama_kabupaten ?? '-' }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex justify-content-start gap-2 mt-2">
+                                                        <a href="{{ url('superadmin/master-data/wilayah-kabupaten/edit-data/' . $item->id) }}"
+                                                            class="btn btn-warning btn-sm" data-bs-toggle="tooltip"
+                                                            title="Edit Data">
+                                                            <i class="bx bxs-pencil"></i> Edit
+                                                        </a>
+                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#hapus{{ $item->id }}"
+                                                            title="Hapus Data">
+                                                            <i class="bx bxs-trash"></i> Hapus
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+
+                            <div class="halaman d-flex justify-content-end mt-3">
+                                {{ $kabupaten->appends(['entries' => $entries])->links() }}
+                            </div>
+
+                            {{-- <div class="table-responsive">
                                 <table id="example" class="table table-striped table-bordered text-center"
                                     style="width:100%">
                                     <thead class="table-primary">
@@ -99,7 +151,6 @@
                                             @foreach ($kabupaten as $index => $item)
                                                 <tr>
                                                     <td>{{ $kabupaten->firstItem() + $index }}</td>
-                                                    {{-- <td>{{ $item->provinsi->namaProvinsi }}</td> --}}
                                                     <td>{{ $item->id }}</td>
                                                     <td>{{ $item->nama_kabupaten }}</td>
                                                     <td>
@@ -129,7 +180,7 @@
                                 <div class="halaman d-flex justify-content-end mt-3">
                                     {{ $kabupaten->appends(['entries' => $entries])->links() }}
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>

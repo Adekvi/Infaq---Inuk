@@ -38,7 +38,7 @@ class HomeController extends Controller
             $struktur->humas_array = $struktur->humas ? explode('|', $struktur->humas) : [];
         }
 
-        dd($struktur);
+        // dd($struktur);
 
         // DONASI
         // Mendapatkan tahun dan bulan saat ini

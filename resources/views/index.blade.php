@@ -2169,8 +2169,8 @@
             let donasiChart;
 
             // Data awal dari Blade
-            const rekapPerDesa = @json($rekap_per_desa);
-            const rekapPerKecamatan = @json($rekap_per_kecamatan);
+            const rekapPerDesa = @json($rekap_per_desa ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+            const rekapPerKecamatan = @json($rekap_per_kecamatan ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
             const kecamatans = @json($kecamatans);
             const colors = ['#0d6efd', '#6f42c1', '#20c997', '#ffc107', '#dc3545', '#198754', '#fd7e14', '#0dcaf0', '#6c757d',
                 '#6610f2'

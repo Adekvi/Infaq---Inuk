@@ -155,11 +155,7 @@
                                                         </div>
                                                         <span class="me-1">:</span>
                                                         <div>
-                                                            @forelse ($item->kelurahan as $kel)
-                                                                <span>{{ $kel->nama_kelurahan }}</span>
-                                                            @empty
-                                                                <span>-</span>
-                                                            @endforelse
+                                                            {{ $item->kelurahan->nama_kelurahan ?? '-' }}
                                                         </div>
                                                     </div>
                                                     <div class="mb-1 d-flex">

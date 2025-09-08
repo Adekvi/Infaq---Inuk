@@ -10,15 +10,16 @@
                                 <h4 class="card-title text-primary">Selamat Datang, <span
                                         class="text-info">{{ Auth::user()->username ?? '-' }}!</span></h4>
                                 <p class="mb-4">
-                                    @if (session('admin_kecamatan'))
+                                    @if (Auth::user()->role == 'admin_kecamatan')
                                         <div class="text-success">
                                             <i class="fa-solid fa-temperature-three-quarters"></i> Sedang Aktif
                                         </div>
                                     @endif
+                                    Wilayah Penarikan :
+                                    <strong>{{ $kecamatan->kecamatan->nama_kecamatan ?? '-' }}</strong> <br>
                                     <strong>
-                                        Donasi {{ $kolektor_mengirim_bulan_ini }} dari donatur
-                                        {{ $total_kolektor }}
-                                        ({{ number_format($persentase_mengirim, 2) }}%)
+                                        Donasi {{ $kolektor_mengirim_bulan_ini }} dari {{ $total_kolektor }} donatur
+                                        ({{ number_format($persentase_mengirim) }}%)
                                     </strong>
                                 </p>
                             </div>
@@ -72,7 +73,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Total Donasi Bulan
+                                <span class="fw-semibold d-block mb-1">Donasi Bulan
                                     {{ now()->translatedFormat('F') }}</span>
                                 <small class="text-success fw-semibold"><i
                                         class="bx bx-up-arrow-alt"></i>Nominal</small>
@@ -91,19 +92,22 @@
                     <div class="row row-bordered g-0">
                         <div class="col-md-12">
                             <h6 class="card-header m-0 me-2 pb-3">
-                                <strong>Rekap Donasi per RW</strong>
+                                <strong>
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    Rekap Donasi per Kelurahan</strong>
                                 <hr>
                             </h6>
                             <div class="card-body">
-                                @forelse ($rekap_per_rw as $data)
+                                @forelse ($rekap_per_kelurahan as $data)
                                     <div class="mb-2">
-                                        <strong>RW {{ $data->Rw ?? '-' }}</strong>
+                                        <strong>Kelurahan
+                                            {{ $data->nama_kelurahan ?? ($data->id_kelurahan ?? '-') }}</strong>
                                         <div class="d-flex flex-column flex-md-row justify-content-between">
                                             <div>
                                                 <span>
-                                                    {{ number_format($data->jumlah_donatur_mengirim, 0, ',', '.') }}
+                                                    {{ number_format($data->jumlah_kolektor_mengirim, 0, ',', '.') }}
                                                     dari {{ number_format($data->total_donatur, 0, ',', '.') }} donatur
-                                                    ({{ number_format($data->persentase, 2) }}%)
+                                                    ({{ number_format($data->persentase) }}%)
                                                 </span>
                                             </div>
                                             <div class="text-md-end">
@@ -121,33 +125,30 @@
                     </div>
                 </div>
             </div>
+
             <div class="col-12 col-lg-6 order-2 order-md-3 order-lg-2 mb-4">
                 <div class="card">
                     <div class="row row-bordered g-0">
                         <div class="col-md-12">
                             <h6 class="card-header m-0 me-2 pb-3">
-                                <strong>
-                                    <i class="fa-solid fa-location-dot"></i>
-                                    Rekap Donasi per Kelurahan</strong>
+                                <strong>Rekap Donasi per RW</strong>
                                 <hr>
                             </h6>
                             <div class="card-body">
-                                @forelse ($rekap_per_kelurahan as $data)
+                                @forelse ($rekap_per_rw as $data)
                                     <div class="mb-2">
-                                        <strong>Kelurahan
-                                            {{ $data->nama_kelurahan ?? ($data->id_kelurahan ?? '-') }}</strong>
+                                        <strong>RW {{ $data->Rw ?? '-' }}</strong>
+                                        <!-- Sekarang tampil "RW 4", bukan array -->
                                         <div class="d-flex flex-column flex-md-row justify-content-between">
                                             <div>
                                                 <span>
-                                                    {{ number_format($data->jumlah_donatur_mengirim, 0, ',', '.') }}
+                                                    {{ number_format($data->jumlah_kolektor_mengirim, 0, ',', '.') }}
                                                     dari {{ number_format($data->total_donatur, 0, ',', '.') }} donatur
-                                                    ({{ number_format($data->persentase, 2) }}%)
+                                                    ({{ number_format($data->persentase) }}%)
                                                 </span>
                                             </div>
                                             <div class="text-md-end">
-                                                <span>
-                                                    Rp {{ number_format($data->total_donasi, 0, ',', '.') }}
-                                                </span>
+                                                <span>Rp {{ number_format($data->total_donasi, 0, ',', '.') }}</span>
                                             </div>
                                         </div>
                                     </div>

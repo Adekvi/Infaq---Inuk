@@ -73,11 +73,15 @@
                                 </div>
                                 <div class="mt-2">
                                     <button type="submit" data-bs-toggle="tooltip" title="Simpan"
-                                        class="btn btn-primary mt-3 mr-2">
+                                        class="btn btn-primary mr-2">
                                         <i class="fa-solid fa-floppy-disk"></i> Simpan
                                     </button>
+                                    <a href="{{ url('kolektor/plotting-tempat') }}" data-bs-toggle="tooltip"
+                                        title="Reset" class="btn btn-info mr-2">
+                                        <i class="fa-solid fa-arrows-rotate"></i> Reset
+                                    </a>
                                     <a href="{{ url('kolektor/plotting-index') }}" data-bs-toggle="tooltip"
-                                        title="Kembali" class="btn btn-secondary mt-3">
+                                        title="Kembali" class="btn btn-secondary mr-2">
                                         <i class="fa-solid fa-arrows-rotate"></i> Kembali
                                     </a>
                                 </div>
@@ -120,11 +124,28 @@
                 line-height: 28px !important;
             }
 
+            .select2-container .select2-search--inline .select2-search__field {
+                box-sizing: border-box;
+                border: none;
+                font-size: 100%;
+                margin-top: 5px;
+                margin-left: 5px;
+                padding: 0;
+                max-width: 100%;
+                resize: none;
+                height: 25px;
+                vertical-align: bottom;
+                font-family: sans-serif;
+                overflow: hidden;
+                word-break: keep-all;
+            }
+
             /* Dropdown lebih modern */
             .select2-dropdown {
                 border-radius: 6px;
                 border: 1px solid #dee2e6;
                 padding: 5px;
+                overflow: hidden;
             }
 
             /* Hover item */
@@ -135,7 +156,7 @@
 
             /* Supaya lebar selalu 100% */
             .select2-container {
-                width: 100% !important;
+                max-width: 100% !important;
             }
         </style>
     @endpush
@@ -177,8 +198,8 @@
                                     @enderror
                                 </div>
                                 <div class="col-md-2">
-                                    <button type="button" class="btn btn-danger btn-sm remove-rt-rw mt-2" data-index="${index}">
-                                        Hapus
+                                    <button type="button" class="btn btn-danger remove-rt-rw mt-2" data-index="${index}">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
                             </div>
@@ -241,10 +262,10 @@
                             <div class="rt-rw-group mb-3" data-kelurahan-id="${kelurahanId}">
                                 <h6>RT/RW untuk ${kelurahanName}</h6>
                                 <div class="rt-rw-inputs"></div>
-                                <button type="button" class="btn btn-primary btn-sm add-rt-rw mt-2" 
+                                <button type="button" class="btn btn-primary add-rt-rw mt-2" 
                                     data-kelurahan-id="${kelurahanId}" data-kelurahan-name="${kelurahanName}" 
                                     data-index-start="0">
-                                    Tambah RT/RW
+                                    <i class="fas fa-plus"></i> Tambah RT/RW
                                 </button>
                             </div>
                         `;

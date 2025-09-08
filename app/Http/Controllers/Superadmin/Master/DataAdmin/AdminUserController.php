@@ -41,11 +41,4 @@ class AdminUserController extends Controller
 
         return redirect()->back()->with('status', 'Status berhasil diubah!');
     }
-
-
-    // public function tambah(Request $request){
-    //     $data = [
-
-    //     ]
-    // }
 }

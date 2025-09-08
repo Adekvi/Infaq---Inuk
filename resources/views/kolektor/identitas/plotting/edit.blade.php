@@ -1,8 +1,6 @@
 <x-utama.layout.main title="Kolektor | Plotting Tempat">
 
     <div class="content-wrapper">
-        <!-- Content -->
-
         <div class="container-xxl flex-grow-1 container-p-y">
             <div class="row">
                 <div class="col-md-12">
@@ -60,11 +58,17 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="id_kelurahan">Kelurahan</label>
-                                                <select name="kelurahans[]" id="id_kelurahan"
-                                                    class="form-control select2" multiple required>
+                                                <select name="id_kelurahan" id="id_kelurahan"
+                                                    class="form-control select2" required>
                                                     <option value="">-- Pilih Kelurahan --</option>
+                                                    @foreach ($kelurahan as $kel)
+                                                        <option value="{{ $kel->id }}"
+                                                            {{ $pilihKel == $kel->id ? 'selected' : '' }}>
+                                                            {{ $kel->nama_kelurahan }}
+                                                        </option>
+                                                    @endforeach
                                                 </select>
-                                                @error('kelurahans.*')
+                                                @error('id_kelurahan')
                                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                                 @enderror
                                             </div>
@@ -92,6 +96,64 @@
 
     @push('css')
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+        <style>
+            /* Styling untuk Select2 */
+            .select2-container .select2-selection--single {
+                height: 40px;
+                /* Sesuaikan dengan tinggi input Bootstrap */
+                border: 1px solid #ced4da;
+                /* Warna border seperti Bootstrap */
+                border-radius: 4px;
+                padding: 0.375rem 0.75rem;
+                background-color: #fff;
+                transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            }
+
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                /* Sesuaikan dengan tinggi input */
+                color: #495057;
+                /* Warna teks seperti Bootstrap */
+            }
+
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                /* Sesuaikan dengan tinggi input */
+                right: 10px;
+            }
+
+            .select2-container--default .select2-selection--single:focus {
+                border-color: #80bdff;
+                box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                /* Efek focus seperti Bootstrap */
+                outline: none;
+            }
+
+            /* Styling dropdown */
+            .select2-container--default .select2-results__option--highlighted[aria-selected] {
+                background-color: #007bff;
+                /* Warna highlight seperti Bootstrap primary */
+                color: #fff;
+            }
+
+            .select2-container--default .select2-results__option {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
+            .select2-dropdown {
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+                /* Efek bayangan seperti Bootstrap */
+            }
+
+            /* Responsif */
+            @media (max-width: 576px) {
+                .select2-container .select2-selection--single {
+                    font-size: 14px;
+                }
+            }
+        </style>
     @endpush
 
     @push('js')
@@ -132,7 +194,7 @@
                                 </div>
                                 <div class="col-md-2">
                                     <button type="button" class="btn btn-danger btn-sm remove-rt-rw" data-index="${index}">
-                                        Hapus
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
                             </div>
@@ -167,9 +229,9 @@
                                 });
 
                                 // Setel kelurahan yang sudah dipilih sebelumnya
-                                const kelurahanIds = @json($kelurahanIds);
-                                if (kelurahanIds.length > 0) {
-                                    $kelurahanSelect.val(kelurahanIds).trigger('change');
+                                const kelurahanId = @json($pilihKel);
+                                if (kelurahanId) {
+                                    $kelurahanSelect.val(kelurahanId).trigger('change');
                                 }
                             },
                             error: function(error) {
@@ -182,24 +244,15 @@
 
                 // Event saat kelurahan dipilih
                 $('#id_kelurahan').on('change', function() {
-                    const selectedKelurahans = $(this).val() || [];
+                    const kelurahanId = $(this).val();
                     const $container = $('#rw-rt-container');
                     $container.empty();
 
-                    // Counter untuk indeks input RT/RW
-                    let inputIndex = 0;
-
-                    // Data RT dan RW dari database
-                    const rts = @json($rts);
-                    const rws = @json($rws);
-
-                    // Tambahkan input RT/RW untuk setiap kelurahan yang dipilih
-                    selectedKelurahans.forEach(function(kelurahanId, index) {
+                    if (kelurahanId) {
                         const $option = $('#id_kelurahan option[value="' + kelurahanId + '"]');
                         const kelurahanName = $option.text();
-                        // Gunakan data RT dan RW dari database jika tersedia, jika tidak gunakan old() atau kosong
-                        const oldRw = rws[index] || @json(old('rw', []))[index] || '';
-                        const oldRt = rts[index] || @json(old('rt', []))[index] || '';
+                        const rts = @json($rts);
+                        const rws = @json($rws);
 
                         // Buat grup untuk kelurahan
                         const kelurahanGroup = `
@@ -208,28 +261,27 @@
                                 <div class="rt-rw-inputs"></div>
                                 <button type="button" class="btn btn-primary btn-sm add-rt-rw mt-2" 
                                     data-kelurahan-id="${kelurahanId}" data-kelurahan-name="${kelurahanName}" 
-                                    data-index-start="${inputIndex}">
-                                    Tambah RT/RW
+                                    data-index-start="0">
+                                    <i class="fas fa-plus"></i>
                                 </button>
                             </div>
                         `;
                         $container.append(kelurahanGroup);
 
                         // Tambahkan input RT/RW awal
+                        const oldRw = rws[0] || @json(old('rw', []))[0] || '';
+                        const oldRt = rts[0] || @json(old('rt', []))[0] || '';
                         $(`.rt-rw-group[data-kelurahan-id="${kelurahanId}"] .rt-rw-inputs`)
-                            .append(generateRtRwInput(kelurahanId, kelurahanName, inputIndex, oldRw,
-                                oldRt));
-                        inputIndex++;
-                    });
+                            .append(generateRtRwInput(kelurahanId, kelurahanName, 0, oldRw, oldRt));
+                    }
                 });
 
                 // Event untuk tombol "Tambah RT/RW"
                 $('#rw-rt-container').on('click', '.add-rt-rw', function() {
-                    console.log('Tombol Tambah RT/RW diklik');
                     const kelurahanId = $(this).data('kelurahan-id');
                     const kelurahanName = $(this).data('kelurahan-name');
                     const $inputsContainer = $(this).siblings('.rt-rw-inputs');
-                    const inputIndex = $('.rt-rw-item').length; // Hitung ulang indeks
+                    const inputIndex = $('.rt-rw-item').length;
 
                     // Tambahkan input baru
                     $inputsContainer.append(generateRtRwInput(kelurahanId, kelurahanName, inputIndex));
@@ -237,12 +289,11 @@
 
                 // Event untuk tombol "Hapus RT/RW"
                 $('#rw-rt-container').on('click', '.remove-rt-rw', function() {
-                    console.log('Tombol Hapus RT/RW diklik');
                     $(this).closest('.rt-rw-item').remove();
                 });
 
                 // Setel kecamatan yang sudah dipilih sebelumnya
-                const kecamatanId = @json($plotting->id_kecamatan);
+                const kecamatanId = @json($pilihKec);
                 if (kecamatanId) {
                     $('#id_kecamatan').val(kecamatanId).trigger('change');
                 }

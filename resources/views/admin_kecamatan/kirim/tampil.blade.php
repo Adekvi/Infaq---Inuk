@@ -39,7 +39,7 @@
                                         <label for="nama_kecamatan" class="form-label">Wilayah/Ranting</label>
                                         <input type="text" name="nama_kecamatan" id="nama_kecamatan"
                                             class="form-control mb-2 mt-2"
-                                            value="{{ $kecamatan->nama_kecamatan ?? '-' }}" readonly>
+                                            value="{{ $kecamatan->kecamatan->nama_kecamatan ?? '-' }}" readonly>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="no_hp" class="form-label">No. Hp Admin Kabupaten</label>

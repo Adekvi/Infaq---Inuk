@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Kolektor;
 
 use App\Http\Controllers\Controller;
+use App\Models\Master\Penerimaan\Dataterima;
 use App\Models\Master\Plotting;
 use App\Models\Role\Transaksi\Penerimaan;
 use Illuminate\Http\Request;
@@ -41,10 +42,19 @@ class DashboardController extends Controller
         $jumlahDonatur = $penerimaan->count(); // Menghitung jumlah baris di penerimaan
 
         // Total target donatur (jumlah id_plot dari plotting untuk user ini)
-        $totalTarget = Plotting::where('id_user', $userId)->count();
+        // $totalTarget = Plotting::where('id_user', $userId)->count();
+        $totalTarget = Dataterima::count();
 
         // Persentase capaian donatur
         $persentase = $totalTarget > 0 ? ($jumlahDonatur / $totalTarget) : 0;
+
+        // dd($totalTarget, $persentase);
+
+        // Donasi disetor (donasi dengan status 'Pending')
+        $donasiBelumDisetor = Penerimaan::where('id_user', $userId)
+            ->whereIn('id_plot', $plotIds)
+            ->where('status', 'Pending')
+            ->sum('nominal');
 
         // Donasi disetor (donasi dengan status 'Kirim')
         $donasiDisetor = Penerimaan::where('id_user', $userId)
@@ -52,10 +62,46 @@ class DashboardController extends Controller
             ->where('status', 'Kirim')
             ->sum('nominal');
 
-        // Query untuk rekap per RW berdasarkan id_user yang login dan id_plot
+        // Belum dikirim (status Pending) → gunakan created_at karena tglSetor bisa null
+        $rekap_per_rw_belum_dikirim = Penerimaan::selectRaw('JSON_UNQUOTE(plottings.Rw) as Rw, COUNT(penerimaans.id) as jumlah_donatur_diterima, SUM(penerimaans.nominal) as total_donasi')
+            ->join('plottings', 'penerimaans.id_plot', '=', 'plottings.id')
+            ->where('penerimaans.status', 'Pending')
+            ->where('penerimaans.id_user', $userId)
+            ->whereYear('penerimaans.created_at', $currentYear)
+            ->whereMonth('penerimaans.created_at', $currentMonth)
+            ->groupBy('plottings.Rw')
+            ->orderBy('plottings.Rw')
+            ->get();
+
+        // Total donatur per RW dari tabel plottings untuk id_user yang login
+        $total_donatur_per_rw_belum_dikirim = Plotting::selectRaw('plottings.Rw, COUNT(plottings.id) as total_donatur')
+            ->where('plottings.id_user', $userId)
+            ->groupBy('plottings.Rw')
+            ->orderBy('plottings.Rw')
+            ->get();
+
+        // dd($total_donatur_per_rw_belum_dikirim);
+
+        $rekap_per_rw_belum_dikirim = $rekap_per_rw_belum_dikirim->map(function ($item) use ($total_donatur_per_rw_belum_dikirim) {
+            $total_donatur = $total_donatur_per_rw_belum_dikirim
+                ->where('Rw', $item->Rw)
+                ->first()
+                ->total_donatur ?? 0;
+
+            // Simpan total_donatur_diterima untuk Blade
+            $item->total_donatur_diterima = max($total_donatur, $item->jumlah_donatur_diterima);
+
+            // Hitung persentase dengan jumlah_donatur_diterima
+            $item->persentase = $item->total_donatur_diterima > 0
+                ? ($item->jumlah_donatur_diterima / $item->total_donatur_diterima) : 0;
+
+            return $item;
+        });
+
+        // Sudah dikirim (status Kirim) → gunakan tglSetor
         $rekap_per_rw = Penerimaan::selectRaw('JSON_UNQUOTE(plottings.Rw) as Rw, COUNT(penerimaans.id) as jumlah_donatur_mengirim, SUM(penerimaans.nominal) as total_donasi')
             ->join('plottings', 'penerimaans.id_plot', '=', 'plottings.id')
-            // ->where('penerimaans.status', 'Kirim')
+            ->where('penerimaans.status', 'Kirim')
             ->where('penerimaans.id_user', $userId)
             ->whereYear('penerimaans.tglSetor', $currentYear)
             ->whereMonth('penerimaans.tglSetor', $currentMonth)
@@ -80,6 +126,22 @@ class DashboardController extends Controller
             return $item;
         });
 
-        return view('kolektor.dashboard.index', compact('totalDonasi', 'jumlahDonatur', 'totalTarget', 'persentase', 'donasiDisetor', 'rekap_per_rw'));
+        $kelurahan = Plotting::with('kelurahan')
+            ->where('id_user', $userId)
+            ->first();
+
+        // dd($kelurahan);
+
+        return view('kolektor.dashboard.index', compact(
+            'totalDonasi',
+            'jumlahDonatur',
+            'totalTarget',
+            'persentase',
+            'donasiDisetor',
+            'rekap_per_rw',
+            'donasiBelumDisetor',
+            'rekap_per_rw_belum_dikirim',
+            'kelurahan'
+        ));
     }
 }

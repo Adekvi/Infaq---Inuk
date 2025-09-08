@@ -30,7 +30,7 @@ class KecamatanController extends Controller
                     });
             });
         }
-        
+
         // Filter berdasarkan kabupaten jika adagh
         if ($filterKabupaten) {
             $query->where('id_kabupaten', $filterKabupaten);
@@ -38,6 +38,8 @@ class KecamatanController extends Controller
 
         $kecamatan = $query->orderBy('id', 'desc')->paginate($entries, ['*'], 'page', $page);
         $kecamatan->appends(['search' => $search, 'entries' => $entries, 'filter_kabupaten' => $filterKabupaten]);
+
+        // dd($kecamatan);
 
         // Ambil semua kabupaten untuk dropdown filter
         $kabupatenList = Db_kabupaten::orderBy('nama_kabupaten')->get();
@@ -50,6 +52,18 @@ class KecamatanController extends Controller
             'kecamatan',
             'kabupatenList'
         ));
+    }
+
+    public function updateStatus(Request $request)
+    {
+        $kecId = $request->input('id');
+        $newStatus = $request->has('status') ? 'Aktif' : 'Nonaktif';
+
+        $kec = Db_kecamatan::findOrFail($kecId);
+        $kec->status = $newStatus;
+        $kec->save();
+
+        return redirect()->back()->with('status', 'Status berhasil diubah!');
     }
 
     public function tambahdata()

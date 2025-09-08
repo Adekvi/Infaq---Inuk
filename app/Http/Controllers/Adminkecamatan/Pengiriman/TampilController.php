@@ -116,12 +116,14 @@ class TampilController extends Controller
         // Ambil data admin dan kecamatan
         $adminKecamatan = User::where('role', 'admin_kecamatan')->where('status', 'A')->first();
         $adminKabupaten = User::where('role', 'admin_kabupaten')->where('status', 'A')->first();
-        $kecamatan = Db_kecamatan::where('status', 'Aktif')->first();
+        $kecamatan = Plotting::with('kecamatan')->where('id_user', $user->id)->first();
 
         // Cek jika kecamatan tersedia
         if (!$kecamatan) {
             return back()->with('error', 'Data kecamatan tidak ditemukan.');
         }
+
+        // dd($kecamatan);
 
         // Hitung total donasi berdasarkan join ke tabel plottings
         $totalDonasi = DB::table('penerimaans')

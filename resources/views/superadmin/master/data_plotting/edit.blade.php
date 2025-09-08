@@ -17,21 +17,11 @@
                             @method('PUT')
 
                             {{-- USER --}}
-                            <div class="row mb-3">
+                            <div class="row">
                                 <div class="col-md-6">
                                     <label for="id_user" class="form-label">User</label>
-                                    <select name="id_user" id="id_user" class="form-control select2" required>
-                                        <option value="">-- Pilih User --</option>
-                                        @foreach ($user as $item)
-                                            <option value="{{ $item->id }}"
-                                                {{ $item->id == $plotting->id_user ? 'selected' : '' }}>
-                                                {{ $item->username }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('id_user')
-                                        <small class="text-danger">{{ $message }}</small>
-                                    @enderror
+                                    <input type="text" class="form-control mt-2 mb-2"
+                                        value="{{ $user->username ?? '-' }}" readonly>
                                 </div>
                             </div>
 
@@ -40,9 +30,10 @@
                                 <div class="col-md-6">
                                     <label for="id_kecamatan" class="form-label">Kecamatan</label>
                                     <select name="id_kecamatan" id="id_kecamatan" class="form-control select2" required>
+                                        <option value="">-- Pilih Kecamatan --</option>
                                         @foreach ($kecamatan as $kec)
                                             <option value="{{ $kec->id }}"
-                                                {{ $kec->id == $plotting->id_kecamatan ? 'selected' : '' }}>
+                                                {{ $pilihKec == $kec->id ? 'selected' : '' }}>
                                                 {{ $kec->nama_kecamatan }}
                                             </option>
                                         @endforeach
@@ -52,16 +43,14 @@
                                     @enderror
                                 </div>
 
-                                @php
-                                    $selectedKelurahanIds = $plotting->kelurahan->pluck('id')->toArray();
-                                @endphp
                                 <div class="col-md-6">
                                     <label for="id_kelurahan" class="form-label">Kelurahan</label>
-                                    <select name="id_kelurahan[]" id="id_kelurahan" class="form-control select2"
-                                        multiple required data-selected='@json($selectedKelurahanIds)'>
+                                    <select name="id_kelurahan" id="id_kelurahan" class="form-control mt-2 select2"
+                                        data-selected="{{ $pilihKel }}">
+                                        <option value="">-- Pilih Kelurahan --</option>
                                         @foreach ($kelurahan as $kel)
                                             <option value="{{ $kel->id }}"
-                                                {{ in_array($kel->id, $selectedKelurahanIds) ? 'selected' : '' }}>
+                                                {{ $pilihKel == $kel->id ? 'selected' : '' }}>
                                                 {{ $kel->nama_kelurahan }}
                                             </option>
                                         @endforeach
@@ -74,14 +63,16 @@
 
                             {{-- RT / RW --}}
                             @php
-                                $rts = json_decode($plotting->Rt, true);
-                                $rws = json_decode($plotting->Rw, true);
+                                $rts = json_decode($plotting->Rt, true) ?? [];
+                                $rws = json_decode($plotting->Rw, true) ?? [];
                             @endphp
+
                             <div class="mb-3">
                                 <label class="form-label">RT / RW</label>
-                                <div class="rt-rw-container d-flex flex-wrap gap-3 align-items-end">
+                                <div class="rt-rw-container d-flex flex-wrap gap-3 align-items-end"
+                                    id="rt-rw-container">
                                     @foreach ($rts as $i => $rt)
-                                        <div class="rt-rw-group d-flex gap-2 align-items-end mb-2" style="width: 45%;"
+                                        <div class="rt-rw-group d-flex flex-column flex-md-row gap-2 align-items-md-end mb-2"
                                             data-id="{{ $i + 1 }}">
                                             <div class="form-group flex-fill">
                                                 <label>RT</label>
@@ -101,19 +92,21 @@
                                             </div>
                                             <div class="d-flex flex-column justify-content-end">
                                                 <button type="button"
-                                                    class="btn btn-danger remove-rt-rw d-inline-flex align-items-center gap-1"
+                                                    class="btn btn-danger btn-sm remove-rt-rw d-inline-flex align-items-center justify-content-center"
                                                     data-bs-toggle="tooltip" title="Hapus">
-                                                    <i class="fas fa-trash"></i> <span>Hapus</span>
+                                                    <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
                                         </div>
                                     @endforeach
 
                                     {{-- Tombol Tambah --}}
-                                    <button type="button" class="btn btn-primary mb-2" id="addRtRw"
-                                        data-bs-toggle="tooltip" title="Tambah">
-                                        <i class="fas fa-plus"></i> Tambah
-                                    </button>
+                                    <div class="d-flex flex-column justify-content-end mb-2">
+                                        <button type="button" class="btn btn-primary btn-sm" id="addRtRw"
+                                            data-bs-toggle="tooltip" title="Tambah">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {{-- Submit --}}
@@ -127,6 +120,7 @@
                                         <i class="fa-solid fa-arrows-rotate"></i> Kembali
                                     </a>
                                 </div>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -137,28 +131,115 @@
     @push('css')
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
         <style>
-            /* Styling Select2 agar seragam dengan Bootstrap */
-            .select2-container .select2-selection--single,
-            .select2-container .select2-selection--multiple {
-                font-size: 1rem;
-                line-height: 1.5;
+            /* Styling untuk Select2 */
+            .select2-container .select2-selection--single {
+                height: 40px;
+                /* Sesuaikan dengan tinggi input Bootstrap */
                 border: 1px solid #ced4da;
-                border-radius: 0.375rem;
+                /* Warna border seperti Bootstrap */
+                border-radius: 4px;
+                padding: 0.375rem 0.75rem;
+                background-color: #fff;
+                transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
             }
 
-            /* Focus efek */
-            .select2-container--default.select2-container--focus .select2-selection {
-                border-color: #86b7fe;
-                box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25);
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                /* Sesuaikan dengan tinggi input */
+                color: #495057;
+                /* Warna teks seperti Bootstrap */
+            }
+
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                /* Sesuaikan dengan tinggi input */
+                right: 10px;
+            }
+
+            .select2-container--default .select2-selection--single:focus {
+                border-color: #80bdff;
+                box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                /* Efek focus seperti Bootstrap */
                 outline: none;
             }
 
-            /* Konsistensi tombol hapus */
-            .remove-rt-rw {
+            /* Styling dropdown */
+            .select2-container--default .select2-results__option--highlighted[aria-selected] {
+                background-color: #007bff;
+                /* Warna highlight seperti Bootstrap primary */
+                color: #fff;
+            }
+
+            .select2-container--default .select2-results__option {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
+            .select2-dropdown {
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+                /* Efek bayangan seperti Bootstrap */
+            }
+
+            /* Responsif */
+            @media (max-width: 576px) {
+                .select2-container .select2-selection--single {
+                    font-size: 14px;
+                }
+            }
+
+            /* Rt dan Rw */
+            /* Konsistensi tombol hapus dan tambah */
+            .remove-rt-rw,
+            #addRtRw {
                 white-space: nowrap;
                 padding: 0.375rem 0.75rem;
                 font-weight: 500;
                 font-size: 0.875rem;
+            }
+
+            /* Responsivitas untuk rt-rw-container */
+            .rt-rw-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            /* Responsivitas untuk rt-rw-group */
+            .rt-rw-group {
+                width: 100%;
+                max-width: 500px;
+            }
+
+            /* Penyesuaian untuk layar sedang dan besar */
+            @media (min-width: 768px) {
+                .rt-rw-group {
+                    width: calc(50% - 0.5rem);
+                    /* Dua kolom dengan jarak */
+                }
+
+                /* Penyesuaian untuk tombol Tambah agar sejajar */
+                #addRtRw {
+                    margin-left: auto;
+                    /* Geser tombol Tambah ke kanan */
+                }
+            }
+
+            /* Penyesuaian untuk layar kecil */
+            @media (max-width: 767px) {
+
+                .rt-rw-group .d-flex.flex-column,
+                .rt-rw-container .d-flex.flex-column {
+                    width: 100%;
+                    /* Tombol memenuhi lebar pada layar kecil */
+                }
+
+                .remove-rt-rw,
+                #addRtRw {
+                    width: 100%;
+                    /* Tombol memenuhi lebar */
+                    justify-content: center;
+                    /* Pusatkan konten tombol */
+                }
             }
         </style>
     @endpush
@@ -171,12 +252,21 @@
             $(document).ready(function() {
                 // Inisialisasi Select2
                 $('#id_user').select2({
-                    width: '100%'
-                });
-                $('#id_kelurahan').select2({
-                    placeholder: "-- Pilih Kelurahan --",
+                    placeholder: '-- Pilih User --',
                     allowClear: true,
-                    width: '100%'
+                    width: '100%',
+                });
+
+                $('#id_kecamatan').select2({
+                    placeholder: '-- Pilih Kecamatan --',
+                    allowClear: true,
+                    width: '100%',
+                });
+
+                $('#id_kelurahan').select2({
+                    placeholder: '-- Pilih Kelurahan --',
+                    allowClear: true,
+                    width: '100%',
                 });
 
                 // Counter untuk ID unik RT/RW
@@ -192,13 +282,11 @@
                     }
                 }
 
-                // Data kelurahan yang sebelumnya dipilih
-                let preselectedKelurahan = $('#id_kelurahan').data('selected') || [];
-
                 // Ketika dropdown kecamatan berubah
                 $('#id_kecamatan').on('change', function() {
-                    let kecamatanId = $(this).val();
-                    let kelurahanSelect = $('#id_kelurahan');
+                    const kecamatanId = $(this).val();
+                    const kelurahanSelect = $('#id_kelurahan');
+                    const preselectedKelurahan = kelurahanSelect.data('selected');
 
                     kelurahanSelect.html('<option value="">-- Pilih Kelurahan --</option>');
 
@@ -211,15 +299,13 @@
                             },
                             success: function(data) {
                                 $.each(data, function(index, kelurahan) {
-                                    let isSelected = preselectedKelurahan.includes(kelurahan
-                                        .id.toString()) ? 'selected' : '';
+                                    const isSelected = preselectedKelurahan == kelurahan
+                                        .id ? 'selected' : '';
                                     kelurahanSelect.append(
                                         `<option value="${kelurahan.id}" ${isSelected}>${kelurahan.nama_kelurahan}</option>`
                                     );
                                 });
-
-                                // Refresh Select2 untuk memastikan nilai terpilih ditampilkan
-                                kelurahanSelect.val(preselectedKelurahan).trigger('change');
+                                kelurahanSelect.trigger('change');
                             },
                             error: function() {
                                 alert('Gagal memuat data kelurahan.');
@@ -234,26 +320,24 @@
                 $('#addRtRw').on('click', function() {
                     rtRwCount++;
                     const newRtRw = `
-            <div class="rt-rw-group d-flex gap-2 align-items-end mb-2" style="width: 45%;" data-id="${rtRwCount}">
+            <div class="rt-rw-group d-flex flex-column flex-md-row gap-2 align-items-md-end mb-2" data-id="${rtRwCount}">
                 <div class="form-group flex-fill">
                     <label for="Rt_${rtRwCount}">RT</label>
-                    <input type="text" name="Rt[]" id="Rt_${rtRwCount}" class="form-control mt-2" placeholder="RT">
+                    <input type="text" name="Rt[]" id="Rt_${rtRwCount}" class="form-control" placeholder="RT" required pattern="[0-9]{1,3}" title="RT harus berupa angka (1-999)">
                 </div>
                 <div class="form-group flex-fill">
                     <label for="Rw_${rtRwCount}">RW</label>
-                    <input type="text" name="Rw[]" id="Rw_${rtRwCount}" class="form-control mt-2" placeholder="RW">
+                    <input type="text" name="Rw[]" id="Rw_${rtRwCount}" class="form-control" placeholder="RW" required pattern="[0-9]{1,3}" title="RW harus berupa angka (1-999)">
                 </div>
                 <div class="d-flex flex-column justify-content-end">
-                    <button type="button" class="btn btn-danger remove-rt-rw d-inline-flex align-items-center justify-content-center"
-                            style="height: 38px; white-space: nowrap;" data-bs-toggle="tooltip" title="Hapus">
-                        <i class="fas fa-trash me-1"></i> Hapus
+                    <button type="button" class="btn btn-danger btn-sm remove-rt-rw d-inline-flex align-items-center justify-content-center" data-bs-toggle="tooltip" title="Hapus">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </div>
         `;
-                    $(this).before(newRtRw);
+                    $('#rt-rw-container').find('.rt-rw-group').last().after(newRtRw);
                     updateRemoveButtons();
-                    // Reinisialisasi tooltip untuk elemen baru
                     $('[data-bs-toggle="tooltip"]').tooltip();
                 });
 
@@ -263,10 +347,8 @@
                     updateRemoveButtons();
                 });
 
-                // Inisialisasi saat pertama kali halaman dimуют
+                // Inisialisasi saat pertama kali halaman dimuat
                 updateRemoveButtons();
-
-                // Inisialisasi Bootstrap Tooltip
                 $('[data-bs-toggle="tooltip"]').tooltip();
 
                 // Trigger load kelurahan jika sudah ada kecamatan terpilih

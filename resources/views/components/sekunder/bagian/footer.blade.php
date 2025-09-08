@@ -69,14 +69,18 @@
                         <p class="text-white mb-0">@INUK.NUKudus</p>
                     </div>
                     <div class="d-flex">
-                        <a class="btn btn-primary btn-sm-square rounded-circle me-3" href="#"><i
-                                class="fab fa-facebook-f text-white"></i></a>
-                        <a class="btn btn-primary btn-sm-square rounded-circle me-3" href="#"><i
-                                class="fab fa-twitter text-white"></i></a>
-                        <a class="btn btn-primary btn-sm-square rounded-circle me-3" href="#"><i
-                                class="fab fa-instagram text-white"></i></a>
-                        <a class="btn btn-primary btn-sm-square rounded-circle me-0" href="#"><i
-                                class="fab fa-linkedin-in text-white"></i></a>
+                        <a class="btn btn-primary btn-sm-square rounded-circle me-3"
+                            href="https://www.tiktok.com/@lazisnukudus?_t=ZS-8wL8LERQaGu&_r=1" target="__blank"><i
+                                class="fab fa-tiktok text-white"></i>
+                        </a>
+                        <a class="btn btn-primary btn-sm-square rounded-circle me-3"
+                            href="https://www.instagram.com/nucarelazisnukudus?igsh=djF4ZzZ4eGpoeWQ3" target="__blank">
+                            <i class="fab fa-instagram text-white"></i>
+                        </a>
+                        <a class="btn btn-primary btn-sm-square rounded-circle me-3"
+                            href="https://youtu.be/wBDeLqz_muI?si=tTQwJAF8SlA98zfI" target="__blank">
+                            <i class="fab fa-youtube text-white"></i>
+                        </a>
                     </div>
                 </div>
             </div>

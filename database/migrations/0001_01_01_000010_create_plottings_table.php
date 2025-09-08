@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('id_user')->constrained('users')->onDelete('cascade');
             $table->foreignId('id_datadiri')->nullable()->constrained('datadiris')->onDelete('cascade');
-            $table->foreignId('id_kecamatan')->constrained('db_kecamatans')->onDelete('cascade');
-            $table->foreignId('id_kelurahan')->constrained('db_kelurahans')->onDelete('cascade');
+            $table->foreignId('id_kecamatan')->nullable()->constrained('db_kecamatans')->onDelete('cascade');
+            $table->foreignId('id_kelurahan')->nullable()->constrained('db_kelurahans')->onDelete('cascade');
             $table->json('Rt')->nullable();
             $table->json('Rw')->nullable();
             $table->timestamps();

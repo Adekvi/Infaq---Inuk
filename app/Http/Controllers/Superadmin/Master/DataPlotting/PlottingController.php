@@ -135,82 +135,114 @@ class PlottingController extends Controller
 
     public function editdata($id)
     {
-        $plotting = Plotting::findOrFail($id);
+        // Ambil data plotting berdasarkan ID
+        $plotting = Plotting::with('kecamatan', 'kelurahan')->findOrFail($id);
+
+        // Ambil daftar user
         $user = User::where('status', 'A')
             ->whereNotIn('role', ['superadmin', 'admin_kecamatan', 'admin_kabupaten'])
-            ->get();
+            ->where('id', $plotting->id_user) // sesuaikan nama kolom foreign key
+            ->first();
+
+        // dd($user);
+
+        // Ambil semua kecamatan
         $kecamatan = Db_kecamatan::all();
+
+        // Ambil kelurahan berdasarkan id_kecamatan dari plotting
         $kelurahan = Db_kelurahan::where('id_kecamatan', $plotting->id_kecamatan)->get();
+
+        // Ambil ID kecamatan dan kelurahan yang dipilih
+        $pilihKec = $plotting->id_kecamatan;
+        $pilihKel = $plotting->id_kelurahan;
+
+        // Decode JSON untuk RT dan RW
+        $rts = json_decode($plotting->Rt, true) ?? [];
+        $rws = json_decode($plotting->Rw, true) ?? [];
 
         return view('superadmin.master.data_plotting.edit', compact(
             'plotting',
             'user',
             'kecamatan',
-            'kelurahan'
+            'kelurahan',
+            'pilihKec',
+            'pilihKel',
+            'rts',
+            'rws'
         ));
     }
 
     public function edit(Request $request, $id)
     {
+        // Debugging input (uncomment untuk uji coba)
+        // dd($request->all());
+
         // Validasi input
-        $request->validate([
-            'id_user' => 'required|exists:users,id',
-            'id_kecamatan' => 'required|exists:db_kecamatans,id',
-            'id_kelurahan' => 'required|array|min:1',
-            'id_kelurahan.*' => 'exists:db_kelurahans,id',
+        $validator = Validator::make($request->all(), [
+            'id_kecamatan' => 'nullable|exists:db_kecamatans,id',
+            'id_kelurahan' => 'nullable|exists:db_kelurahans,id',
             'Rt' => 'required|array|min:1',
-            'Rt.*' => 'string|max:255|not_in:""',
+            'Rt.*' => 'required|regex:/^[0-9]{1,3}$/',
             'Rw' => 'required|array|min:1',
-            'Rw.*' => 'string|max:255|not_in:""',
+            'Rw.*' => 'required|regex:/^[0-9]{1,3}$/',
         ]);
 
-        // Validasi custom untuk memastikan jumlah Rt dan Rw sama
-        $validator = Validator::make($request->all(), [
-            'Rt' => 'required|array|min:1',
-            'Rw' => 'required|array|min:1',
-        ], [], []);
-
-        $validator->after(function ($validator) use ($request) {
-            if (count($request->Rt) !== count($request->Rw)) {
-                $validator->errors()->add('Rt', 'Jumlah RT dan RW harus sama.');
-                $validator->errors()->add('Rw', 'Jumlah RT dan RW harus sama.');
-            }
-        });
-
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            Log::error('Validasi gagal', ['errors' => $validator->errors()->toArray()]);
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
-        // Ambil data plotting yang akan diedit
+        // Ambil data dari request
+        $kecamatanId = $request->input('id_kecamatan');
+        $kelurahanId = $request->input('id_kelurahan');
+        $rts = $request->input('Rt');
+        $rws = $request->input('Rw');
+
+        // Pastikan jumlah RT dan RW sesuai
+        if (count($rts) !== count($rws)) {
+            Log::error('Jumlah RT/RW tidak sesuai', [
+                'rt_count' => count($rts),
+                'rw_count' => count($rws),
+            ]);
+            return redirect()->back()
+                ->withErrors(['rt' => 'Jumlah RT dan RW tidak sesuai.'])
+                ->withInput();
+        }
+
         $plotting = Plotting::findOrFail($id);
 
         // Ambil data diri terkait user
-        $dataDiri = DataDiri::where('id_user', $request->id_user)->first();
+        $dataDiri = DataDiri::where('id_user', $plotting->id_user)->first();
 
-        // Pastikan panjang array Rt dan Rw sama
-        $rtArray = $request->Rt;
-        $rwArray = $request->Rw;
-        $maxLength = max(count($rtArray), count($rwArray));
-        $rtArray = array_pad($rtArray, $maxLength, '');
-        $rwArray = array_pad($rwArray, $maxLength, '');
+        try {
+            // Simpan data plotting
+            $plotting->update([
+                'id_user' => $plotting->id_user, // Gunakan id_user yang sudah ada
+                'id_datadiri' => $dataDiri ? $dataDiri->id : null,
+                'id_kecamatan' => $kecamatanId,
+                'id_kelurahan' => $kelurahanId,
+                'Rt' => json_encode($rts),
+                'Rw' => json_encode($rws),
+            ]);
 
-        // Update data plotting
-        $plotting->update([
-            'id_user' => $request->id_user,
-            'id_datadiri' => $dataDiri ? $dataDiri->id : null,
-            'id_kecamatan' => $request->id_kecamatan,
-            'Rt' => json_encode($rtArray),
-            'Rw' => json_encode($rwArray),
-        ]);
+            Log::info('Data plotting tersimpan', [
+                'plotting_id' => $plotting->id,
+                'kecamatan_id' => $kecamatanId,
+                'kelurahan_id' => $kelurahanId,
+                'rt' => $rts,
+                'rw' => $rws,
+            ]);
 
-        // Sinkronisasi kelurahan di pivot table
-        $plotting->kelurahan()->sync($request->id_kelurahan);
-
-        Log::info('Plotting berhasil diupdate: ', $plotting->toArray());
-
-        return redirect()->route('superadmin.master.plotting')->with('success', 'Data plotting berhasil diperbarui.');
+            return redirect()->route('superadmin.master.plotting')->with('success', 'Data plotting berhasil diperbarui.');
+        } catch (\Exception $e) {
+            Log::error('Gagal menyimpan plotting', ['error' => $e->getMessage()]);
+            return redirect()->back()
+                ->withErrors(['error' => 'Gagal menyimpan data plotting: ' . $e->getMessage()])
+                ->withInput();
+        }
     }
-
 
     public function hapus($id)
     {

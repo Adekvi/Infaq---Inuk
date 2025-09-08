@@ -23,7 +23,7 @@ class Db_kelurahan extends Model
 
     public function plotting()
     {
-        return $this->belongsToMany(Plotting::class, 'id_kelurahan', 'id');
+        return $this->hasMany(Plotting::class, 'id_kelurahan', 'id');
     }
 
     // public function plotting()

@@ -7,13 +7,15 @@
                     <div class="d-flex align-items-end row">
                         <div class="col-sm-7">
                             <div class="card-body">
-                                <h5 class="card-title text-primary">Selamat Datang! 🎉</h5>
-                                @if (session('admin_active'))
-                                    <div class="text-success">
-                                        <i class="fa-solid fa-temperature-three-quarters"></i> Sedang Aktif
-                                    </div>
-                                @endif
-                                Dashboard Superadmin
+                                <h4 class="card-title text-primary">Selamat Datang, <span
+                                        class="text-info">{{ Auth::user()->username ?? '-' }}!</span></h4>
+                                <p class="mb-4">
+                                    @if (session('superadmin'))
+                                        <div class="text-success">
+                                            <i class="fa-solid fa-temperature-three-quarters"></i> Sedang Aktif
+                                        </div>
+                                    @endif
+                                </p>
                             </div>
                         </div>
                         <div class="col-sm-5 text-center text-sm-left">
@@ -41,9 +43,14 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Total Donasi</span>
-                                <h3 class="card-title mb-2"></h3>
+                                <span class="fw-semibold d-block mb-1">Total Donasi Tahun {{ now()->year }} </span>
+                                <h6 class="card-title mb-2">
+                                    <strong>
+                                        Rp {{ number_format($total_donasi_tahun, 0, ',', '.') }}
+                                    </strong>
+                                </h6>
                                 <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
+                                    Nominal
                                 </small>
                             </div>
                         </div>
@@ -52,7 +59,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title d-flex align-items-start justify-content-between">
-                                    <i class="fa-solid fa-suitcase-medical fa-2x text-warning"></i>
+                                    <i class="fa-solid fa-calendar-check fa-2x text-warning"></i>
                                     <div class="dropdown">
                                         <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown"
                                             aria-haspopup="true" aria-expanded="false">
@@ -60,10 +67,14 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Admin Kecamatan</span>
-                                <h3 class="card-title mb-2"></h3>
-                                <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
-                                </small>
+                                <span class="fw-semibold d-block mb-1">Donasi Bulan
+                                    {{ now()->translatedFormat('F') }}</span>
+                                <h6 class="card-title mb-2">
+                                    <strong>Rp
+                                        {{ number_format($total_donasi_per_bulan[now()->translatedFormat('F')] ?? 0, 0, ',', '.') }}</strong>
+                                </h6>
+                                <small class="text-success fw-semibold"><i
+                                        class="bx bx-up-arrow-alt"></i>Nominal</small>
                             </div>
                         </div>
                     </div>
@@ -86,7 +97,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title d-flex align-items-start justify-content-between">
-                                    <i class="fa-solid fa-solid fa-stethoscope fa-2x text-success"></i>
+                                    <i class="fa-solid fa-chalkboard-user fa-2x text-secondary"></i>
                                     <div class="dropdown">
                                         <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown"
                                             aria-haspopup="true" aria-expanded="false">
@@ -94,9 +105,14 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Admin Kabupaten</span>
-                                <h3 class="card-title mb-2"></h3>
+                                <span class="fw-semibold d-block mb-1">Jumlah Donatur</span>
+                                <h6 class="card-title mb-2">
+                                    <strong>
+                                        {{ $jumlahDonatur ?? '0' }}
+                                    </strong>
+                                </h6>
                                 <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
+                                    Donatur
                                 </small>
                             </div>
                         </div>
@@ -105,7 +121,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title d-flex align-items-start justify-content-between">
-                                    <i class="fa-solid fa-notes-medical fa-2x text-info"></i>
+                                    <i class="fa-solid fa-comments-dollar fa-2x text-danger"></i>
                                     <div class="dropdown">
                                         <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown"
                                             aria-haspopup="true" aria-expanded="false">
@@ -113,9 +129,62 @@
                                         </button>
                                     </div>
                                 </div>
-                                <span class="fw-semibold d-block mb-1">Jumlah Kolektor</span>
-                                <h3 class="card-title mb-2"></h3>
+                                <span class="fw-semibold d-block mb-1">Donasi Diterima</span>
+                                <h6 class="card-title mb-2">
+                                    <strong>
+                                        Rp {{ number_format($donatur_diterima, 0, ',', '.') }}
+                                    </strong>
+                                </h6>
                                 <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
+                                    Nominal
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="card-title d-flex align-items-start justify-content-between">
+                                    <i class="fa-solid fa-money-bill-transfer fa-2x text-success"></i>
+                                    <div class="dropdown">
+                                        <button class="btn p-0" type="button" id="cardOpt3"
+                                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <span class="fw-semibold d-block mb-1">Donasi dikirim</span>
+                                <h6 class="card-title mb-2">
+                                    <strong>
+                                        Rp {{ number_format($donatur_dikirim, 0, ',', '.') }}
+                                    </strong>
+                                </h6>
+                                <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
+                                    Nominal
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="card-title d-flex align-items-start justify-content-between">
+                                    <i class="fa-solid fa-id-badge fa-2x text-dark"></i>
+                                    <div class="dropdown">
+                                        <button class="btn p-0" type="button" id="cardOpt3"
+                                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <span class="fw-semibold d-block mb-1">Jumlah Kolektor</span>
+                                <h6 class="card-title mb-2">
+                                    <strong>
+                                        {{ $total_kolektor ?? '-' }}
+                                    </strong>
+                                </h6>
+                                <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i>
+                                    Orang
                                 </small>
                             </div>
                         </div>

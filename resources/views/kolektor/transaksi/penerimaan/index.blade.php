@@ -162,7 +162,7 @@
                                                         <hr>
 
                                                         <div class="mb-1 d-flex">
-                                                            <div style="width: 85px;"><strong>Kelurahan</strong>
+                                                            <div style="width: 110px;"><strong>Kelurahan</strong>
                                                             </div>
                                                             <span class="me-1">:</span>
                                                             <div>
@@ -170,12 +170,23 @@
                                                             </div>
                                                         </div>
                                                         <div class="mb-1 d-flex">
-                                                            <div style="width: 85px;"><strong>RT/RW</strong></div>
+                                                            <div style="width: 110px;"><strong>RT/RW</strong></div>
                                                             <span class="me-1">:</span>
                                                             <div>{{ $item->Rt }}/{{ $item->Rw }}</div>
                                                         </div>
                                                         <div class="mb-1 d-flex">
-                                                            <div style="width: 85px;"><strong>Nominal</strong></div>
+                                                            <div style="width: 110px;"><strong>No. Alat</strong></div>
+                                                            <span class="me-1">:</span>
+                                                            <div>{{ $item->dataterima->no_alat ?? '-' }}</div>
+                                                        </div>
+                                                        <div class="mb-1 d-flex">
+                                                            <div style="width: 110px;"><strong>Nama Donatur</strong>
+                                                            </div>
+                                                            <span class="me-1">:</span>
+                                                            <div>{{ $item->dataterima->nama_donatur ?? '-' }}</div>
+                                                        </div>
+                                                        <div class="mb-1 d-flex">
+                                                            <div style="width: 110px;"><strong>Nominal</strong></div>
                                                             <span class="me-1">:</span>
                                                             <div>{{ Rupiah($item->nominal) }}</div>
                                                         </div>

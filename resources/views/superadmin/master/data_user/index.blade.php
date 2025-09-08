@@ -179,19 +179,17 @@
                                                             {{ $item->email ?? '-' }}
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div
-                                                    class="card-footer bg-white border-top-0 d-flex justify-content-end gap-2">
-                                                    <a href="{{ url('superadmin/master-data/user/edit-data/' . $item->id) }}"
-                                                        class="btn btn-warning btn-sm d-flex align-items-center gap-1">
-                                                        <i class="bx bxs-pencil"></i> Edit
-                                                    </a>
-                                                    <button type="button"
-                                                        class="btn btn-danger btn-sm d-flex align-items-center gap-1"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#hapus{{ $item->id }}">
-                                                        <i class="bx bxs-trash"></i> Hapus
-                                                    </button>
+                                                    <div class="mt-2">
+                                                        <a href="{{ url('superadmin/master-data/user/edit-data/' . $item->id) }}"
+                                                            class="btn btn-warning btn-sm">
+                                                            <i class="bx bxs-pencil"></i> Edit
+                                                        </a>
+                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#hapus{{ $item->id }}">
+                                                            <i class="bx bxs-trash"></i> Hapus
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

@@ -34,6 +34,28 @@
                                 </div>
                             </div>
                             <div class="row">
+                                <div class="col-md-4">
+                                    <label for="">No. Alat</label>
+                                    <select name="no_alat" id="no_alat" class="form-control mt-2 mb-2 select2">
+                                        @if ($penerimaan->dataterima)
+                                            <option value="{{ $penerimaan->dataterima->no_alat }}" selected>
+                                                {{ $penerimaan->dataterima->no_alat }}</option>
+                                        @endif
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="">Nama Donatur</label>
+                                    <select name="nama_donatur" id="nama_donatur"
+                                        class="form-control mt-2 mb-2 select2">
+                                        @if ($penerimaan->dataterima)
+                                            <option value="{{ $penerimaan->dataterima->nama_donatur }}" selected>
+                                                {{ $penerimaan->dataterima->nama_donatur }}</option>
+                                        @endif
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
                                 <h5 class="mt-3 mb-3">
                                     <li>Nominal Infaq</li>
                                 </h5>
@@ -59,9 +81,9 @@
                                                 <div class="input-group">
                                                     <span class="input-group-text bg-light"><b>Rp.</b></span>
                                                     <input type="number" name="nominal[]"
-                                                        id="nominal_{{ $index }}"
-                                                        class="form-control minggu-input" placeholder="0" min="0"
-                                                        value="{{ $item->nominal }}" oninput="updateSubTotal()">
+                                                        id="nominal_{{ $index }}" class="form-control"
+                                                        placeholder="0" min="0" value="{{ $item->nominal }}"
+                                                        oninput="updateSubTotal()">
                                                 </div>
                                             </div>
                                             <div class="col-md-2 d-flex align-items-end mt-2">
@@ -119,6 +141,52 @@
 
     @push('css')
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+        <style>
+            /* Supaya tinggi Select2 sama seperti form-control Bootstrap */
+            .select2-container .select2-selection--single {
+                height: 38px !important;
+                padding: 4px 12px;
+                border: 1px solid #ced4da;
+                border-radius: 6px;
+            }
+
+            /* Hilangkan border biru besar default */
+            .select2-container--default .select2-selection--single:focus,
+            .select2-container--default .select2-selection--multiple:focus {
+                outline: none;
+                border-color: #86b7fe;
+                box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, .25);
+            }
+
+            /* Supaya placeholder kelihatan abu-abu */
+            .select2-selection__placeholder {
+                color: #6c757d !important;
+            }
+
+            /* Supaya teks Select2 tidak terlalu mepet */
+            .select2-selection__rendered {
+                line-height: 28px !important;
+            }
+
+            /* Dropdown lebih modern */
+            .select2-dropdown {
+                border-radius: 6px;
+                border: 1px solid #dee2e6;
+                padding: 5px;
+            }
+
+            /* Hover item */
+            .select2-results__option--highlighted {
+                background-color: #0d6efd !important;
+                color: white !important;
+            }
+
+            /* Supaya lebar selalu 100% */
+            .select2-container {
+                width: 100% !important;
+            }
+        </style>
     @endpush
 
     @push('js')
@@ -192,6 +260,53 @@
             // Inisialisasi total saat halaman dimuat
             document.addEventListener('DOMContentLoaded', function() {
                 updateSubTotal();
+            });
+
+            $(document).ready(function() {
+                $('#no_alat').select2({
+                    placeholder: 'Cari No. Alat',
+                    ajax: {
+                        url: '{{ route('search.noalat') }}',
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({
+                            q: params.term
+                        }),
+                        processResults: data => ({
+                            results: data
+                        })
+                    }
+                }).on('select2:select', function(e) {
+                    let data = e.params.data;
+                    $('#nama_donatur').html(
+                        `<option value="${data.nama_donatur}" selected>${data.nama_donatur}</option>`
+                    ).trigger('change');
+
+                    // Optional: reload RT/RW sesuai id_terima yang dipilih
+                    // bisa pakai AJAX untuk fetch data RT/RW baru
+                });
+
+                $('#nama_donatur').select2({
+                    placeholder: 'Cari Nama Donatur',
+                    ajax: {
+                        url: '{{ route('search.namadonatur') }}',
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({
+                            q: params.term
+                        }),
+                        processResults: data => ({
+                            results: data
+                        })
+                    }
+                }).on('select2:select', function(e) {
+                    let data = e.params.data;
+                    $('#no_alat').html(
+                        `<option value="${data.no_alat}" selected>${data.no_alat}</option>`
+                    ).trigger('change');
+
+                    // Optional: reload RT/RW sesuai id_terima yang dipilih
+                });
             });
         </script>
     @endpush

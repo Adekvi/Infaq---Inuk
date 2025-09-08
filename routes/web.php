@@ -20,7 +20,17 @@ use App\Http\Controllers\Kolektor\Transaksi\HasilKirimController;
 use App\Http\Controllers\Kolektor\Transaksi\PenerimaanController;
 use App\Http\Controllers\Kolektor\Transaksi\PengirimanController;
 use App\Http\Controllers\Superadmin\DashboardController;
+use App\Http\Controllers\Superadmin\Landing\BeritaController;
+use App\Http\Controllers\Superadmin\Landing\Halaman1Controller;
+use App\Http\Controllers\Superadmin\Landing\KeunggulanController;
+use App\Http\Controllers\Superadmin\Landing\LayananController;
+use App\Http\Controllers\Superadmin\Landing\PertanyaanController;
+use App\Http\Controllers\Superadmin\Landing\ProgramController;
+use App\Http\Controllers\Superadmin\Landing\StrukturController;
+use App\Http\Controllers\Superadmin\Landing\TentangkamiController;
+use App\Http\Controllers\Superadmin\Landing\TestiController;
 use App\Http\Controllers\Superadmin\Master\DataAdmin\AdminUserController;
+use App\Http\Controllers\Superadmin\Master\DataPenerimaan\DataPenerimaanController;
 use App\Http\Controllers\Superadmin\Master\DataPlotting\PlottingController;
 use App\Http\Controllers\Superadmin\Master\DataSetting\DataSettingController;
 use App\Http\Controllers\Superadmin\Master\DataTemplate\PesanController;
@@ -71,7 +81,17 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::get('superadmin/master-data/user/edit-data/{id}', [UserController::class, 'editdata']);
     Route::put('superadmin/master-data/user/edit/{id}', [UserController::class, 'edit']);
     Route::delete('superadmin/master-data/user/hapus/{id}', [UserController::class, 'hapus']);
-    Route::post('superadmin/master-data/update-status', [UserController::class, 'updateStatus'])->name('superadmin.data.status');
+    Route::post('superadmin/master-data/upadmin_kecamatan/info-kirim/index-tampildate-status', [UserController::class, 'updateStatus'])->name('superadmin.data.status');
+    Route::post('superadmin/plotting/get-kelurahan', [UserController::class, 'getKelurahan'])->name('superadmin.master.user.getKelurahan');
+
+    // MASTER DATA PENERIMAAN
+    Route::get('superadmin/master-data/penerimaan', [DataPenerimaanController::class, 'index'])->name('superadmin.master.penerimaan');
+    Route::get('superadmin/master-data/penerimaan/tambah-data', [DataPenerimaanController::class, 'tambahdata']);
+    Route::post('superadmin/master-data/penerimaan/tambah', [DataPenerimaanController::class, 'tambah']);
+    Route::get('superadmin/master-data/penerimaan/edit-data/{id}', [DataPenerimaanController::class, 'editdata']);
+    Route::put('superadmin/master-data/penerimaan/edit/{id}', [DataPenerimaanController::class, 'edit']);
+    Route::delete('superadmin/master-data/penerimaan/hapus/{id}', [DataPenerimaanController::class, 'hapus']);
+    Route::post('superadmin/master-data/update-status', [DataPenerimaanController::class, 'updateStatus'])->name('superadmin.data.status');
 
     // MASTER PLOTTING
     Route::get('superadmin/master-data/plotting', [PlottingController::class, 'index'])->name('superadmin.master.plotting');
@@ -114,17 +134,91 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::put('superadmin/master-data/wilayah-kelurahan/edit/{id}', [KelurahanController::class, 'edit']);
     Route::delete('superadmin/master-data/wilayah-kelurahan/hapus/{id}', [KelurahanController::class, 'hapus']);
 
-    // DATA PETUGAS
-    // Route::get('superadmin/master-data/petugas-dataPetugas', [PetugasController::class, 'index'])->name('superadmin.master.dataPetugas');
-    // Route::get('superadmin/master-data/petugas-dataPetugas/tambah-data', [PetugasController::class, 'tambahdata']);
-    // Route::post('superadmin/master-data/petugas-dataPetugas/tambah', [PetugasController::class, 'tambah']);
-    // Route::get('superadmin/master-data/petugas-dataPetugas/edit-data/{id}', [PetugasController::class, 'editdata']);
-    // Route::put('superadmin/master-data/petugas-dataPetugas/edit/{id}', [PetugasController::class, 'edit']);
-    // Route::delete('superadmin/master-data/petugas-dataPetugas/hapus/{id}', [PetugasController::class, 'hapus']);
-
     // DATA ADMIN
     Route::get('superadmin/master-data/admin-dataAdmin', [AdminUserController::class, 'index'])->name('superadmin.master.dataAdmin');
     Route::post('superadmin/master-data/update-status', [AdminUserController::class, 'updateStatus'])->name('admin-master.data.status');
+
+    // LANDING PAGE
+    // NAVBAR
+    Route::get('superadmin/landing/halaman-navbar', [Halaman1Controller::class, 'index'])->name('superadmin.landing.halaman1');
+    Route::get('superadmin/landing/halaman-navbar/tambah-data', [Halaman1Controller::class, 'tambahdata']);
+    Route::post('superadmin/landing/halaman-navbar/tambah', [Halaman1Controller::class, 'tambah']);
+    Route::get('superadmin/landing/halaman-navbar/edit-data/{id}', [Halaman1Controller::class, 'editdata']);
+    Route::put('superadmin/landing/halaman-navbar/edit/{id}', [Halaman1Controller::class, 'edit']);
+    Route::delete('superadmin/landing/halaman-navbar/hapus/{id}', [Halaman1Controller::class, 'hapus']);
+    Route::post('superadmin/landing/halaman1-status', [Halaman1Controller::class, 'updateStatus'])->name('admin-landing.data.halaman1');
+
+    // TENTANG KAMI
+    Route::get('superadmin/landing/tentang-kami', [TentangkamiController::class, 'index'])->name('superadmin.landing.tentang');
+    Route::get('superadmin/landing/tentang-kami/tambah-data', [TentangkamiController::class, 'tambahdata']);
+    Route::post('superadmin/landing/tentang-kami/tambah', [TentangkamiController::class, 'tambah']);
+    Route::get('superadmin/landing/tentang-kami/edit-data/{id}', [TentangkamiController::class, 'editdata']);
+    Route::put('superadmin/landing/tentang-kami/edit/{id}', [TentangkamiController::class, 'edit']);
+    Route::delete('superadmin/landing/tentang-kami/hapus/{id}', [TentangkamiController::class, 'hapus']);
+    Route::post('superadmin/landing/tentang-status', [TentangkamiController::class, 'updateStatus'])->name('admin-landing.data.tentang');
+
+    // PROGRAM KAMI
+    Route::get('superadmin/landing/program-kami', [ProgramController::class, 'index'])->name('superadmin.landing.program');
+    Route::get('superadmin/landing/program-kami/tambah-data', [ProgramController::class, 'tambahdata']);
+    Route::post('superadmin/landing/program-kami/tambah', [ProgramController::class, 'tambah']);
+    Route::get('superadmin/landing/program-kami/edit-data/{id}', [ProgramController::class, 'editdata']);
+    Route::put('superadmin/landing/program-kami/edit/{id}', [ProgramController::class, 'edit']);
+    Route::delete('superadmin/landing/program-kami/hapus/{id}', [ProgramController::class, 'hapus']);
+    Route::post('superadmin/landing/program-status', [ProgramController::class, 'updateStatus'])->name('admin-landing.data.tentang');
+
+    // lAYANAN KAMI
+    Route::get('superadmin/landing/layanan-kami', [LayananController::class, 'index'])->name('superadmin.landing.layanan');
+    Route::get('superadmin/landing/layanan-kami/tambah-data', [LayananController::class, 'tambahdata']);
+    Route::post('superadmin/landing/layanan-kami/tambah', [LayananController::class, 'tambah']);
+    Route::get('superadmin/landing/layanan-kami/edit-data/{id}', [LayananController::class, 'editdata']);
+    Route::put('superadmin/landing/layanan-kami/edit/{id}', [LayananController::class, 'edit']);
+    Route::delete('superadmin/landing/layanan-kami/hapus/{id}', [LayananController::class, 'hapus']);
+    Route::post('superadmin/landing/layanan-status', [LayananController::class, 'updateStatus'])->name('admin-landing.data.tentang');
+
+    // KEUNGGULAN KAMI
+    Route::get('superadmin/landing/keunggulan-kami', [KeunggulanController::class, 'index'])->name('superadmin.landing.keunggulan');
+    Route::get('superadmin/landing/keunggulan-kami/tambah-data', [KeunggulanController::class, 'tambahdata']);
+    Route::post('superadmin/landing/keunggulan-kami/tambah', [KeunggulanController::class, 'tambah']);
+    Route::get('superadmin/landing/keunggulan-kami/edit-data/{id}', [KeunggulanController::class, 'editdata']);
+    Route::put('superadmin/landing/keunggulan-kami/edit/{id}', [KeunggulanController::class, 'edit']);
+    Route::delete('superadmin/landing/keunggulan-kami/hapus/{id}', [KeunggulanController::class, 'hapus']);
+    Route::post('superadmin/landing/keunggulan-status', [KeunggulanController::class, 'updateStatus'])->name('admin-landing.data.tentang');
+
+    // BERITA 
+    Route::get('superadmin/landing/berita', [BeritaController::class, 'index'])->name('superadmin.landing.berita');
+    Route::get('superadmin/landing/berita/tambah-data', [BeritaController::class, 'tambahdata']);
+    Route::post('superadmin/landing/berita/tambah', [BeritaController::class, 'tambah']);
+    Route::get('superadmin/landing/berita/edit-data/{id}', [BeritaController::class, 'editdata']);
+    Route::put('superadmin/landing/berita/edit/{id}', [BeritaController::class, 'edit']);
+    Route::delete('superadmin/landing/berita/hapus/{id}', [BeritaController::class, 'hapus']);
+    Route::post('superadmin/landing/berita-status', [BeritaController::class, 'updateStatus'])->name('admin-landing.data.tentang');
+
+    // PERTANYAAN 
+    Route::get('superadmin/landing/tanya', [PertanyaanController::class, 'index'])->name('superadmin.landing.tanya');
+    Route::get('superadmin/landing/tanya/tambah-data', [PertanyaanController::class, 'tambahdata']);
+    Route::post('superadmin/landing/tanya/tambah', [PertanyaanController::class, 'tambah']);
+    Route::get('superadmin/landing/tanya/edit-data/{id}', [PertanyaanController::class, 'editdata']);
+    Route::put('superadmin/landing/tanya/edit/{id}', [PertanyaanController::class, 'edit']);
+    Route::delete('superadmin/landing/tanya/hapus/{id}', [PertanyaanController::class, 'hapus']);
+    Route::post('superadmin/landing/tanya-status', [PertanyaanController::class, 'updateStatus'])->name('admin-landing.data.tentang');
+
+    // STRUKTUR PERNGURUS
+    Route::get('superadmin/landing/struktur-pengurus', [StrukturController::class, 'index'])->name('superadmin.landing.struktur');
+    Route::get('superadmin/landing/struktur-pengurus/tambah-data', [StrukturController::class, 'tambahdata']);
+    Route::post('superadmin/landing/struktur-pengurus/tambah', [StrukturController::class, 'tambah']);
+    Route::get('superadmin/landing/struktur-pengurus/edit-data/{id}', [StrukturController::class, 'editdata']);
+    Route::put('superadmin/landing/struktur-pengurus/edit/{id}', [StrukturController::class, 'edit']);
+    Route::delete('superadmin/landing/struktur-pengurus/hapus/{id}', [StrukturController::class, 'hapus']);
+    Route::post('superadmin/landing/struktur-status', [StrukturController::class, 'updateStatus'])->name('admin-landing.data.struktur');
+
+    // TESTIMONI
+    Route::get('superadmin/landing/testi', [TestiController::class, 'index'])->name('superadmin.landing.testi');
+    Route::get('superadmin/landing/testi/tambah-data', [TestiController::class, 'tambahdata']);
+    Route::post('superadmin/landing/testi/tambah', [TestiController::class, 'tambah']);
+    Route::get('superadmin/landing/testi/edit-data/{id}', [TestiController::class, 'editdata']);
+    Route::put('superadmin/landing/testi/edit/{id}', [TestiController::class, 'edit']);
+    Route::delete('superadmin/landing/testi/hapus/{id}', [TestiController::class, 'hapus']);
+    Route::post('superadmin/landing/testi-status', [TestiController::class, 'updateStatus'])->name('admin-landing.data.struktur');
 });
 
 Route::middleware(['auth', 'role:kolektor'])->group(function () {
@@ -159,6 +253,8 @@ Route::middleware(['auth', 'role:kolektor'])->group(function () {
     Route::delete('kolektor/penerimaan/input-infaq/hapus/{id}', [PenerimaanController::class, 'hapus'])->name('kolektor.input.infaq.hapus');
     Route::post('/get-kelurahan', [PenerimaanController::class, 'getKelurahanByKecamatan'])->name('ajax.getKelurahan');
     Route::get('kolektor/penerimaan/get-kelurahan', [PenerimaanController::class, 'getKelurahan'])->name('kolektor.penerimaan.getKelurahan');
+    Route::get('/search-noalat', [PenerimaanController::class, 'searchNoAlat'])->name('search.noalat');
+    Route::get('/search-namadonatur', [PenerimaanController::class, 'searchNamaDonatur'])->name('search.namadonatur');
 
     // KOLEKTOR PENGIRIMAN
     Route::get('kolektor/pengiriman/index', [PengirimanController::class, 'index'])->name('kolektor.pengiriman.index');
@@ -235,8 +331,8 @@ Route::middleware(['auth', 'role:admin_kabupaten'])->group(function () {
 
     // SETOR
     Route::get('admin_kabupaten/data-setor', [SetorController::class, 'index'])->name('admin_kabupaten.data-setor');
-    Route::post('/admin_kecamatan/update-status', [SetorController::class, 'updateStatus'])
-        ->name('admin_kecamatan.updateStatus');
+    Route::post('/admin_kabupaten/update-status', [SetorController::class, 'updateStatus'])
+        ->name('admin_kabupaten.updateStatus');
 
     // REKAP
     Route::get('admin_kabupaten/rekap-index', [RekapController::class, 'index'])->name('admin_kabupaten.rekap');

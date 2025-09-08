@@ -2,6 +2,7 @@
 
 namespace App\Models\Master;
 
+use App\Models\Master\Penerimaan\Dataterima;
 use App\Models\Master\Wilayah\Db_kecamatan;
 use App\Models\Master\Wilayah\Db_kelurahan;
 use App\Models\Profil\Datadiri;
@@ -37,6 +38,11 @@ class Plotting extends Model
     public function kelurahan()
     {
         return $this->belongsTo(Db_kelurahan::class, 'id_kelurahan', 'id');
+    }
+
+    public function dataterima()
+    {
+        return $this->belongsTo(Dataterima::class, 'id_terima', 'id');
     }
 
     // public function kelurahan()

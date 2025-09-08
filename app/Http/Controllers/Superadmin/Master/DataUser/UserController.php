@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\Superadmin\Master\DataUser;
 
 use App\Http\Controllers\Controller;
+use App\Models\Master\Plotting;
 use App\Models\Master\Setting;
+use App\Models\Master\Wilayah\Db_kecamatan;
+use App\Models\Master\Wilayah\Db_kelurahan;
+use App\Models\Profil\Datadiri;
 use App\Models\User;
 use App\Services\FonnteService;
 use Illuminate\Http\Request;
@@ -66,32 +70,32 @@ class UserController extends Controller
         // Ambil data untuk dropdown
         $setting = Setting::all();
 
-        // dd($user);
+        // dd($setting);
 
         return view('superadmin.master.data_user.index', compact('user', 'search', 'entries', 'roles', 'jabatan', 'setting'));
     }
 
     private function formatPhoneNumber($no_hp)
     {
-        // Hilangkan spasi dan karakter non-digit
-        $no_hp = preg_replace('/\D/', '', $no_hp);
+        // Hilangkan spasi dan karakter non-digit kecuali tanda +
+        $no_hp = preg_replace('/[^0-9+]/', '', $no_hp);
 
-        // Jika nomor diawali dengan "08", ubah menjadi "+62"
-        if (substr($no_hp, 0, 2) === "08") {
-            $no_hp = "+62" . substr($no_hp, 1);
-        } elseif (substr($no_hp, 0, 3) !== "+62") {
-            // Jika tidak dimulai dengan 08 atau +62, tambahkan +62
-            $no_hp = "+62" . $no_hp;
+        // Jika nomor sudah diawali +62, biarkan
+        if (substr($no_hp, 0, 3) === '+62') {
+            return $no_hp;
+        }
+
+        // Jika nomor diawali dengan 08, ubah menjadi +62
+        if (substr($no_hp, 0, 2) === '08') {
+            return '+62' . substr($no_hp, 1);
+        }
+
+        // Jika tidak diawali +62 atau 08, tambahkan +62
+        if (substr($no_hp, 0, 1) !== '+') {
+            return '+62' . $no_hp;
         }
 
         return $no_hp;
-    }
-
-    public function tambahdata()
-    {
-        $setting = Setting::all();
-
-        return view('superadmin.master.data_user.tambah', compact('setting'));
     }
 
     public function updateStatus(Request $request)
@@ -106,28 +110,46 @@ class UserController extends Controller
         return redirect()->back()->with('status', 'Status berhasil diubah!');
     }
 
+    public function tambahdata()
+    {
+        $setting = Setting::all();
+        $kecamatans = Db_kecamatan::where('status', 'Aktif')->get();
+        $kelurahans = Db_kelurahan::all();
+
+        return view('superadmin.master.data_user.tambah', compact('setting', 'kecamatans', 'kelurahans'));
+    }
+
+    public function getKelurahan(Request $request)
+    {
+        $kecamatanId = $request->input('id_kecamatan');
+        $kelurahans = Db_kelurahan::where('id_kecamatan', $kecamatanId)->get();
+        return response()->json($kelurahans);
+    }
+
     public function tambah(Request $request)
     {
-        // dd($request->all());
-        Log::info('Mulai proses pendaftaran');
+        Log::info('Mulai proses pendaftaran', ['request' => $request->all()]);
 
         try {
+            // Validasi input
             $request->validate([
                 'id_setting' => 'required|exists:settings,id',
                 'username' => ['nullable', 'string', 'max:255', 'unique:users,username'],
                 'no_hp' => ['required', 'string', 'unique:users,no_hp', 'regex:/^[0-9]+$/'],
                 'password' => ['required', 'string', 'min:6'],
-                'role' => 'nullable|in:kolektor,admin_kecamatan,admin_kabupaten',
+                'role' => 'required|in:kolektor,admin_kecamatan,admin_kabupaten',
+                'id_kecamatan' => 'required_if:role,kolektor,admin_kecamatan|exists:db_kecamatans,id',
+                'id_kelurahan' => 'required_if:role,kolektor|nullable|exists:db_kelurahans,id',
+                'rt' => 'required_if:role,kolektor|array',
+                'rw' => 'required_if:role,kolektor|array',
             ]);
 
             // Format nomor HP
             $no_hp = $this->formatPhoneNumber($request->no_hp);
             Log::info('Nomor HP setelah diformat: ' . $no_hp);
 
-            // Simpan password asli sebelum di-hash
             $plainPassword = $request->password;
 
-            // Gunakan transaksi untuk menyimpan data
             DB::beginTransaction();
             try {
                 // Simpan user ke tabel users
@@ -142,7 +164,7 @@ class UserController extends Controller
 
                 Log::info('User berhasil dibuat', ['user' => $user]);
 
-                // Kirim pesan konfirmasi pendaftaran
+                // Kirim pesan WhatsApp
                 $welcomeMessage = "Halo, *{$user->username}*! 🎉\n\n"
                     . "Akun Anda telah berhasil dibuat. Berikut adalah detail login Anda:\n"
                     . "🔹 *Username:* {$user->username}\n"
@@ -156,96 +178,183 @@ class UserController extends Controller
 
                 $this->fonnteService->sendWhatsAppMessage($no_hp, $welcomeMessage);
 
+                // Simpan plotting untuk role kolektor atau admin_kecamatan
+                if (in_array($user->role, ['kolektor', 'admin_kecamatan'])) {
+                    // Cek apakah data diri diperlukan
+                    $dataDiri = Datadiri::where('id_user', $user->id)->first();
+
+                    // Siapkan data untuk tabel plotting
+                    $plottingData = [
+                        'id_user' => $user->id,
+                        'id_datadiri' => $dataDiri ? $dataDiri->id : null,
+                        'id_kecamatan' => $request->id_kecamatan,
+                    ];
+
+                    // Tambahkan Rt dan Rw hanya untuk kolektor
+                    if ($user->role === 'kolektor') {
+                        $plottingData['Rt'] = json_encode($request->rt);
+                        $plottingData['Rw'] = json_encode($request->rw);
+                    } else {
+                        $plottingData['Rt'] = null;
+                        $plottingData['Rw'] = null;
+                    }
+
+                    $plotting = Plotting::create($plottingData);
+
+                    // Simpan kelurahan hanya untuk kolektor
+                    if ($user->role === 'kolektor' && $request->filled('id_kelurahan')) {
+                        $plotting->kelurahan()->sync([$request->id_kelurahan]);
+                    }
+
+                    Log::info('Plotting berhasil disimpan', ['plotting' => $plotting]);
+                }
+
                 DB::commit();
-                return redirect()->route('superadmin.master.user');
+                return redirect()->route('superadmin.master.user')->with('success', 'User berhasil ditambahkan.');
             } catch (\Exception $e) {
                 DB::rollBack();
-                Log::error('Gagal menyimpan user: ' . $e->getMessage());
-                return redirect()->back()->with('error', 'Gagal menyimpan data. Silakan coba lagi.');
+                Log::error('Gagal menyimpan user atau plotting: ' . $e->getMessage(), ['stack' => $e->getTraceAsString()]);
+                return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
             }
         } catch (\Exception $e) {
-            Log::error('Error saat pendaftaran: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Terjadi kesalahan. Silakan coba lagi.');
+            Log::error('Error saat validasi pendaftaran: ' . $e->getMessage(), ['stack' => $e->getTraceAsString()]);
+            return redirect()->back()->with('error', 'Terjadi kesalahan validasi: ' . $e->getMessage());
         }
     }
 
     public function editdata(Request $request, $id)
     {
         $user = User::with('setting')->findOrFail($id);
-        // Ambil semua data setting untuk opsi dropdown
         $settings = Setting::all();
+        $pilihSet = optional($user->setting)->id ?? $user->id_setting;
 
-        $pilihSet = optional($user->setting)->id ?? $user->id;
+        // Fetch plotting related to the user
+        $plotting = Plotting::with(['kecamatan', 'kelurahan'])->where('id_user', $user->id)->first();
 
-        return view('superadmin.master.data_user.edit', compact('user', 'settings', 'pilihSet'));
+        // Ambil semua kecamatan
+        $kecamatan = Db_kecamatan::all();
+
+        // Ambil kelurahan berdasarkan id_kecamatan dari plotting, jika ada
+        $kelurahan = $plotting && $plotting->id_kecamatan
+            ? Db_kelurahan::where('id_kecamatan', $plotting->id_kecamatan)->get()
+            : collect();
+
+        // Ambil ID kecamatan dan kelurahan sebagai data tunggal
+        $pilihKec = $plotting ? $plotting->id_kecamatan : null;
+        $pilihKel = ($plotting && $user->role === 'kolektor' && $plotting->id_kelurahan)
+            ? $plotting->id_kelurahan
+            : null;
+
+        // Decode JSON untuk RT dan RW, hanya untuk kolektor
+        $rts = ($plotting && $user->role === 'kolektor' && $plotting->rt) ? json_decode($plotting->rt, true) : [];
+        $rws = ($plotting && $user->role === 'kolektor' && $plotting->rw) ? json_decode($plotting->rw, true) : [];
+
+        return view('superadmin.master.data_user.edit', compact(
+            'user',
+            'settings',
+            'pilihSet',
+            'kecamatan',
+            'kelurahan',
+            'plotting',
+            'rts',
+            'rws',
+            'pilihKec',
+            'pilihKel'
+        ));
     }
 
     public function edit(Request $request, $id)
     {
-        Log::info('Mulai proses pengeditan user', ['user_id' => $id]);
+        Log::info('Mulai proses update user', [
+            'user_id' => $id,
+            'request_data' => $request->all()
+        ]);
 
         try {
+            // Validasi input
             $request->validate([
                 'id_setting' => 'required|exists:settings,id',
                 'username' => ['nullable', 'string', 'max:255', 'unique:users,username,' . $id],
-                'no_hp' => ['required', 'string', 'regex:/^[0-9]+$/', 'unique:users,no_hp,' . $id],
+                'no_hp' => ['required', 'string', 'unique:users,no_hp,' . $id, 'regex:/^\+?[0-9]{10,15}$/'],
                 'password' => ['nullable', 'string', 'min:6'],
-                'role' => 'nullable|in:kolektor,admin_kecamatan,admin_kabupaten',
+                'role' => 'required|in:kolektor,admin_kecamatan,admin_kabupaten',
+                'id_kecamatan' => 'required_if:role,kolektor,admin_kecamatan|exists:db_kecamatans,id',
+                'id_kelurahan' => 'required_if:role,kolektor|nullable|exists:db_kelurahans,id',
+                'rt' => 'required_if:role,kolektor|array',
+                'rw' => 'required_if:role,kolektor|array',
+            ], [
+                'no_hp.regex' => 'Nomor telepon harus berupa angka dengan panjang 10-15 digit, boleh diawali dengan tanda +.',
             ]);
 
-            // Format nomor HP
-            $no_hp = $this->formatPhoneNumber($request->no_hp);
-            Log::info('Nomor HP setelah diformat: ' . $no_hp);
+            Log::info('Validasi berhasil', ['request_data' => $request->all()]);
 
-            // Gunakan transaksi untuk menyimpan data
+            $user = User::findOrFail($id);
+
             DB::beginTransaction();
             try {
-                // Cari user berdasarkan ID
-                $user = User::findOrFail($id);
+                // Simpan data user sebelum pembaruan
+                Log::info('Data user sebelum update', ['user' => $user->toArray()]);
 
-                // Update data user
+                // Update user
                 $user->id_setting = $request->id_setting;
                 $user->username = $request->username;
-                $user->no_hp = $no_hp;
-                $user->role = $request->role;
-                $user->status = 'A';
-
-                // Update password jika diisi
+                $user->no_hp = $this->formatPhoneNumber($request->no_hp);
                 if ($request->filled('password')) {
-                    $plainPassword = $request->password;
-                    $user->password = Hash::make($plainPassword);
-                } else {
-                    $plainPassword = null; // Password tidak diubah
+                    $user->password = Hash::make($request->password);
                 }
-
+                $user->email = $request->email;
+                $user->role = $request->role;
                 $user->save();
 
-                Log::info('User berhasil diperbarui', ['user' => $user]);
+                Log::info('User berhasil diupdate', ['user' => $user->toArray()]);
 
-                // Kirim pesan konfirmasi perubahan
-                $updateMessage = "Halo, *{$user->username}*! 📝\n\n"
-                    . "Data akun Anda telah berhasil diperbarui. Berikut adalah detail terbaru:\n"
-                    . "🔹 *Username:* {$user->username}\n"
-                    . "🔹 *No. HP:* {$user->no_hp}\n"
-                    . ($plainPassword ? "🔹 *Password Baru:* {$plainPassword}\n\n" : "\n")
-                    . "🔐 *Keamanan Akun:*\n"
-                    . "- Silakan login menggunakan Nomor HP/Username dan password Anda.\n"
-                    . "- Anda bisa mengganti password kapan saja di pengaturan akun.\n\n"
-                    . "📞 Bantuan? Hubungi kami di " . env('NOMOR_CS') . "\n\n"
-                    . "Terima kasih telah menggunakan *" . env('NAMA_PERUSAHAAN') . "*! 🚀✨";
+                // Update atau buat plotting
+                if (in_array($user->role, ['kolektor', 'admin_kecamatan'])) {
+                    $dataDiri = Datadiri::where('id_user', $user->id)->first();
 
-                $this->fonnteService->sendWhatsAppMessage($no_hp, $updateMessage);
+                    $plottingData = [
+                        'id_user' => $user->id,
+                        'id_datadiri' => $dataDiri ? $dataDiri->id : null,
+                        'id_kecamatan' => $request->id_kecamatan,
+                        'id_kelurahan' => $user->role === 'kolektor' ? $request->id_kelurahan : null,
+                        'Rt' => $user->role === 'kolektor' ? json_encode($request->rt) : null,
+                        'Rw' => $user->role === 'kolektor' ? json_encode($request->rw) : null,
+                    ];
+
+                    $plotting = Plotting::where('id_user', $user->id)->first();
+
+                    Log::info('Data plotting sebelum update', [
+                        'plotting_exists' => $plotting ? true : false,
+                        'plotting_data' => $plotting ? $plotting->toArray() : null,
+                        'new_plotting_data' => $plottingData
+                    ]);
+
+                    if ($plotting) {
+                        $updated = $plotting->update($plottingData);
+                        Log::info('Plotting update status', [
+                            'updated' => $updated,
+                            'plotting_data' => $plotting->fresh()->toArray()
+                        ]);
+                    } else {
+                        $plotting = Plotting::create($plottingData);
+                        Log::info('Plotting baru berhasil dibuat', ['plotting' => $plotting->toArray()]);
+                    }
+                } else {
+                    Plotting::where('id_user', $user->id)->delete();
+                    Log::info('Plotting dihapus karena role bukan kolektor atau admin_kecamatan', ['user_id' => $user->id]);
+                }
 
                 DB::commit();
-                return redirect()->route('superadmin.master.user');
+                Log::info('Transaksi berhasil disimpan');
+                return redirect()->route('superadmin.master.user')->with('success', 'User berhasil diupdate.');
             } catch (\Exception $e) {
                 DB::rollBack();
-                Log::error('Gagal memperbarui user: ' . $e->getMessage());
-                return redirect()->back()->with('error', 'Gagal memperbarui data. Silakan coba lagi.');
+                Log::error('Gagal menyimpan user atau plotting: ' . $e->getMessage(), ['stack' => $e->getTraceAsString()]);
+                return redirect()->back()->withInput()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
             }
         } catch (\Exception $e) {
-            Log::error('Error saat pengeditan user: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Terjadi kesalahan. Silakan coba lagi.');
+            Log::error('Error saat validasi update: ' . $e->getMessage(), ['stack' => $e->getTraceAsString()]);
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan validasi: ' . $e->getMessage());
         }
     }
 

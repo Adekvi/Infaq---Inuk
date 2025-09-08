@@ -21,22 +21,22 @@ class UserSeeder extends Seeder
                 'password' => bcrypt('1'),
                 'role' => 'superadmin',
             ],
-            [
-                'id' => 2,
-                'id_setting' => '4',
-                'username' => 'adminkabupaten',
-                'no_hp' => '088866090204',
-                'password' => bcrypt('1'),
-                'role' => 'admin_kabupaten',
-            ],
-            [
-                'id' => 3,
-                'id_setting' => '5',
-                'username' => 'adminkecamatan',
-                'no_hp' => '089523324482',
-                'password' => bcrypt('1'),
-                'role' => 'admin_kecamatan',
-            ]
+            // [
+            //     'id' => 2,
+            //     'id_setting' => '4',
+            //     'username' => 'adminkabupaten',
+            //     'no_hp' => '088866090204',
+            //     'password' => bcrypt('1'),
+            //     'role' => 'admin_kabupaten',
+            // ],
+            // [
+            //     'id' => 3,
+            //     'id_setting' => '5',
+            //     'username' => 'adminkecamatan',
+            //     'no_hp' => '089523324482',
+            //     'password' => bcrypt('1'),
+            //     'role' => 'admin_kecamatan',
+            // ]
         ];
 
         foreach ($admin as $key => $value) {

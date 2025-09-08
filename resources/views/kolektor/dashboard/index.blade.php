@@ -15,6 +15,8 @@
                                             <i class="fa-solid fa-temperature-three-quarters"></i> Sedang Aktif
                                         </div>
                                     @endif
+                                    Wilayah Penarikan :
+                                    <strong>{{ $kelurahan->kelurahan->nama_kelurahan ?? '-' }}</strong> <br>
                                     <strong>Donasi {{ $jumlahDonatur }} dari donatur {{ $jumlahDonatur }}
                                         ({{ number_format($persentase, 2) }}%)</strong><br>
                                     {{-- <strong>Rp {{ number_format($totalDonasi, 0, ',', '.') }}</strong> --}}
@@ -88,7 +90,54 @@
                             <h6 class="card-header m-0 me-2 pb-3">
                                 <strong>
                                     <i class="fa-solid fa-location-dot"></i>
-                                    Rekap Donasi per RW</strong>
+                                    Rekap Donasi per RW Belum dikirim</strong>
+                                <hr>
+                            </h6>
+                            <div class="card-body">
+                                @forelse ($rekap_per_rw_belum_dikirim as $data)
+                                    <div class="mb-2">
+                                        @php
+                                            $rw = $data->Rw;
+
+                                            if (is_array($rw)) {
+                                                $rw = $rw[0];
+                                            } elseif (is_string($rw) && Str::startsWith($rw, '[')) {
+                                                // Kalau masih string JSON, decode dulu
+                                                $decoded = json_decode($rw, true);
+                                                $rw = is_array($decoded) ? $decoded[0] ?? '-' : $rw;
+                                            }
+                                        @endphp
+
+                                        <strong>RW {{ $rw ?? '-' }}</strong>
+
+                                        <div class="d-flex flex-column flex-md-row justify-content-between">
+                                            <div>
+                                                <span>
+                                                    {{ number_format($data->jumlah_donatur_diterima, 0, ',', '.') }}
+                                                    dari {{ number_format($data->total_donatur_diterima, 0, ',', '.') }}
+                                                    donatur
+                                                    ({{ number_format($data->persentase, 2) }}%)
+                                                </span>
+                                            </div>
+                                            <div class="text-md-end">
+                                                <span>
+                                                    <strong>
+                                                        Rp {{ number_format($data->total_donasi, 0, ',', '.') }}
+                                                    </strong>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <p class="mb-0 text-center">Tidak ada data untuk bulan ini</p>
+                                @endforelse
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <h6 class="card-header m-0 me-2 pb-3">
+                                <strong>
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    Rekap Donasi per RW Telah Dikirim</strong>
                                 <hr>
                             </h6>
                             <div class="card-body">
@@ -118,7 +167,9 @@
                                             </div>
                                             <div class="text-md-end">
                                                 <span>
-                                                    Rp {{ number_format($data->total_donasi, 0, ',', '.') }}
+                                                    <strong>
+                                                        Rp {{ number_format($data->total_donasi, 0, ',', '.') }}
+                                                    </strong>
                                                 </span>
                                             </div>
                                         </div>
@@ -163,8 +214,8 @@
                                 <div class="card-title d-flex align-items-start justify-content-between">
                                     <i class="fa-solid fa-hand-holding-dollar fa-2x text-success"></i>
                                     <div class="dropdown">
-                                        <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown"
-                                            aria-haspopup="true" aria-expanded="false">
+                                        <button class="btn p-0" type="button" id="cardOpt3"
+                                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                             <i class="bx bx-dots-vertical-rounded"></i>
                                         </button>
                                     </div>

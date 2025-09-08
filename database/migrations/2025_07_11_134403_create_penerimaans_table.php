@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('id_user')->constrained('users')->onDelete('cascade');
             $table->foreignId('id_plot')->constrained('plottings')->onDelete('cascade');
+            $table->foreignId('id_terima')->constrained('dataterimas')->onDelete('cascade');
+            $table->string('nama_donatur')->nullable();
             $table->date('tglSetor')->nullable();
             $table->string('namaBank')->nullable();
             $table->string('Rekening')->nullable();

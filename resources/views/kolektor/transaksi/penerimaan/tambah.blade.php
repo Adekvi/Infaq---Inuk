@@ -49,6 +49,17 @@
                                 </div>
                             </div>
 
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label for="no_alat" class="form-label">No. Alat</label>
+                                    <select name="no_alat" id="no_alat" class="form-control select2"></select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="nama_donatur" class="form-label">Nama Donatur</label>
+                                    <select name="nama_donatur" id="nama_donatur" class="form-control select2"></select>
+                                </div>
+                            </div>
+
                             <hr>
 
                             <div id="formContainer"></div>
@@ -64,13 +75,16 @@
                             </div>
 
                             <div class="mt-4">
-                                <button type="submit" data-bs-toggle="tooltip" title="Simpan"
-                                    class="btn btn-primary me-2">
+                                <button type="submit" data-bs-toggle="tooltip" title="Simpan" class="btn btn-primary">
                                     <i class="fa-solid fa-floppy-disk"></i> Simpan
                                 </button>
+                                <a href="{{ url('kolektor/penerimaan/input-infaq/tambah-data') }}"
+                                    data-bs-toggle="tooltip" title="Reset" class="btn btn-info">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Reset
+                                </a>
                                 <a href="{{ url('kolektor/penerimaan/input-infaq') }}" data-bs-toggle="tooltip"
                                     title="Kembali" class="btn btn-secondary">
-                                    <i class="fa-solid fa-arrows-rotate"></i> Kembali
+                                    <i class="fa-solid fa-backward"></i> Kembali
                                 </a>
                             </div>
                         </form>
@@ -82,6 +96,64 @@
 
     @push('css')
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+        <style>
+            /* Styling untuk Select2 */
+            .select2-container .select2-selection--single {
+                height: 40px;
+                /* Sesuaikan dengan tinggi input Bootstrap */
+                border: 1px solid #ced4da;
+                /* Warna border seperti Bootstrap */
+                border-radius: 4px;
+                padding: 0.375rem 0.75rem;
+                background-color: #fff;
+                transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            }
+
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                /* Sesuaikan dengan tinggi input */
+                color: #495057;
+                /* Warna teks seperti Bootstrap */
+            }
+
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                /* Sesuaikan dengan tinggi input */
+                right: 10px;
+            }
+
+            .select2-container--default .select2-selection--single:focus {
+                border-color: #80bdff;
+                box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                /* Efek focus seperti Bootstrap */
+                outline: none;
+            }
+
+            /* Styling dropdown */
+            .select2-container--default .select2-results__option--highlighted[aria-selected] {
+                background-color: #007bff;
+                /* Warna highlight seperti Bootstrap primary */
+                color: #fff;
+            }
+
+            .select2-container--default .select2-results__option {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
+            .select2-dropdown {
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+                /* Efek bayangan seperti Bootstrap */
+            }
+
+            /* Responsif */
+            @media (max-width: 576px) {
+                .select2-container .select2-selection--single {
+                    font-size: 14px;
+                }
+            }
+        </style>
     @endpush
 
     @push('js')
@@ -131,7 +203,7 @@
                                 <label>RW</label>
                                 <input type="text" name="Rw[]" class="form-control" value="${rw}" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label>Nominal</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light"><b>Rp.</b></span>
@@ -238,6 +310,84 @@
 
                 // Jalankan awal
                 updateSubTotal();
+
+                // Pencarian No. Alat
+                $('#no_alat').select2({
+                    placeholder: 'Cari atau Tambah No. Alat',
+                    tags: true, // Aktifkan tags untuk input manual
+                    ajax: {
+                        url: '{{ route('search.noalat') }}',
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({
+                            q: params.term
+                        }),
+                        processResults: data => ({
+                            results: data
+                        })
+                    },
+                    createTag: function(params) {
+                        // Membuat tag baru jika input tidak ditemukan
+                        let term = $.trim(params.term);
+                        if (term === '') {
+                            return null;
+                        }
+                        return {
+                            id: term,
+                            text: term,
+                            no_alat: term, // Simpan no_alat untuk dikirim ke backend
+                            nama_donatur: $('#nama_donatur').val() || '', // Ambil nama_donatur jika ada
+                            isNew: true // Tanda bahwa ini adalah data baru
+                        };
+                    }
+                }).on('select2:select', function(e) {
+                    let data = e.params.data;
+                    if (data.nama_donatur && !data.isNew) {
+                        // Jika data dari database (bukan input manual), update nama_donatur
+                        $('#nama_donatur').html(
+                            `<option value="${data.nama_donatur}" selected>${data.nama_donatur}</option>`
+                        ).trigger('change');
+                    }
+                });
+
+                // Pencarian Nama Donatur
+                $('#nama_donatur').select2({
+                    placeholder: 'Cari atau Tambah Nama Donatur',
+                    tags: true, // Aktifkan tags untuk input manual
+                    ajax: {
+                        url: '{{ route('search.namadonatur') }}',
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({
+                            q: params.term
+                        }),
+                        processResults: data => ({
+                            results: data
+                        })
+                    },
+                    createTag: function(params) {
+                        // Membuat tag baru jika input tidak ditemukan
+                        let term = $.trim(params.term);
+                        if (term === '') {
+                            return null;
+                        }
+                        return {
+                            id: term,
+                            text: term,
+                            no_alat: $('#no_alat').val() || '', // Ambil no_alat jika ada
+                            nama_donatur: term, // Simpan nama_donatur untuk dikirim ke backend
+                            isNew: true // Tanda bahwa ini adalah data baru
+                        };
+                    }
+                }).on('select2:select', function(e) {
+                    let data = e.params.data;
+                    if (data.no_alat && !data.isNew) {
+                        // Jika data dari database (bukan input manual), update no_alat
+                        $('#no_alat').html(
+                            `<option value="${data.no_alat}" selected>${data.no_alat}</option>`
+                        ).trigger('change');
+                    }
+                });
             });
         </script>
     @endpush

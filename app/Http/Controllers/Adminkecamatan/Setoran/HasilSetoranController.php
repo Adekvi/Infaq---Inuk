@@ -42,7 +42,7 @@ class HasilSetoranController extends Controller
     private function buildBaseQuery()
     {
         return Penerimaan::with(['user', 'plotting.kecamatan', 'plotting.kelurahan'])
-            ->where('status', 'Validasi');
+            ->where('status', 'Kirim');
     }
 
     private function applyPeriodFilter($query, Request $request): void
@@ -190,6 +190,7 @@ class HasilSetoranController extends Controller
             ->filter()
             ->sort()
             ->values();
+
         $rws = Penerimaan::where('id_user', Auth::user()->id)
             ->where('status', 'Kirim')
             ->distinct()

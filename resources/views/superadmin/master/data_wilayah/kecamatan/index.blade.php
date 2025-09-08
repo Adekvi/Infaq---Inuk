@@ -103,6 +103,24 @@
                                                         #{{ $kecamatan->firstItem() + $index }} -
                                                         {{ $item->kabupaten->nama_kabupaten ?? '-' }}
                                                     </h6>
+                                                    <form method="POST"
+                                                        action="{{ url('superadmin/master-data/update-status') }}">
+                                                        @csrf
+                                                        <input type="hidden" name="id"
+                                                            value="{{ $item->id }}">
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                role="switch" id="status_{{ $item->id }}"
+                                                                name="status" value="AKtif"
+                                                                onchange="this.form.submit()"
+                                                                {{ $item->status === 'Aktif' ? 'checked' : '' }}>
+                                                            <label class="form-check-label"
+                                                                for="status_{{ $item->id }}">
+                                                                {{ $item->status === 'Aktif' ? 'Aktif' : 'Nonaktif' }}
+                                                            </label>
+                                                        </div>
+                                                    </form>
+                                                    <hr>
                                                     <div class="mb-1 d-flex">
                                                         <div style="width: 100px;"><strong>Kode</strong>
                                                         </div>
@@ -123,9 +141,9 @@
                                                         <div
                                                             class="d-flex justify-content-center gap-2 align-items-center">
                                                             <a href="{{ url('superadmin/master-data/wilayah-kecamatan/edit-data/' . $item->id) }}"
-                                                                class="btn btn-sm btn-warning" data-bs-toggle="tooltip"
-                                                                data-bs-offset="0,4" data-bs-placement="top"
-                                                                data-bs-html="true"
+                                                                class="btn btn-sm btn-warning"
+                                                                data-bs-toggle="tooltip" data-bs-offset="0,4"
+                                                                data-bs-placement="top" data-bs-html="true"
                                                                 data-bs-original-title="<i class='bx bxs-pencil' ></i> <span>Edit Data</span>">
                                                                 <i class="bx bxs-pencil"></i> Edit
                                                             </a>

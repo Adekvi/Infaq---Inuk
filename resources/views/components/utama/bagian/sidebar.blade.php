@@ -98,6 +98,13 @@
                 </li>
 
                 {{-- DATA MASTER JABATAN --}}
+                <li class="menu-item {{ Request::is('superadmin/master-data/penerimaan*') ? 'active open' : '' }}">
+                    <a href="{{ url('superadmin/master-data/penerimaan') }}" class="menu-link">
+                        <i class="menu-icon tf-icons fa-solid fa-database"></i>
+                        <div data-i18n="Analytics">Data Master Penerimaan</div>
+                    </a>
+                </li>
+
                 <li class="menu-item {{ Request::is('superadmin/master-data/setting*') ? 'active open' : '' }}">
                     <a href="{{ url('superadmin/master-data/setting') }}" class="menu-link">
                         <i class="menu-icon tf-icons fa-solid fa-folder-open"></i>
@@ -119,6 +126,64 @@
                         <i class="menu-icon tf-icons fa-solid fa-map-location-dot"></i>
                         <div data-i18n="Analytics">Data Master Plotting</div>
                     </a>
+                </li>
+
+                {{-- LANDING PAGE --}}
+                <li class="menu-header small text-uppercase">
+                    <span class="menu-header-text">LANDING PAGE</span>
+                </li>
+                <li class="menu-item {{ Request::is('superadmin/landing*') ? 'active open' : '' }}">
+                    <a href="javascript:void(0);" class="menu-link menu-toggle">
+                        <i class="menu-icon tf-icons fa-solid fa-paperclip"></i>
+                        <div data-i18n="Account Settings">Landing Page</div>
+                    </a>
+                    <ul class="menu-sub">
+                        <li class="menu-item {{ Request::is('superadmin/landing/halaman*') ? 'active' : '' }}">
+                            <a href="{{ url('superadmin/landing/halaman-navbar') }}" class="menu-link">
+                                <div data-i18n="Notifications">Navbar</div>
+                            </a>
+                        </li>
+                        <li class="menu-item {{ Request::is('superadmin/landing/tentang*') ? 'active' : '' }}">
+                            <a href="{{ url('superadmin/landing/tentang-kami') }}" class="menu-link">
+                                <div data-i18n="Connections">Tentang Kami</div>
+                            </a>
+                        </li>
+                        <li class="menu-item {{ Request::is('superadmin/landing/program*') ? 'active' : '' }}">
+                            <a href="{{ url('superadmin/landing/program-kami') }}" class="menu-link">
+                                <div data-i18n="Connections">Program Kami</div>
+                            </a>
+                        </li>
+                        <li class="menu-item {{ Request::is('superadmin/landing/layanan*') ? 'active' : '' }}">
+                            <a href="{{ url('superadmin/landing/layanan-kami') }}" class="menu-link">
+                                <div data-i18n="Connections">Layanan Kami</div>
+                            </a>
+                        </li>
+                        <li class="menu-item {{ Request::is('superadmin/landing/keunggulan*') ? 'active' : '' }}">
+                            <a href="{{ url('superadmin/landing/keunggulan-kami') }}" class="menu-link">
+                                <div data-i18n="Connections">Keunggulan Kami</div>
+                            </a>
+                        </li>
+                        <li class="menu-item {{ Request::is('superadmin/landing/berita*') ? 'active' : '' }}">
+                            <a href="{{ url('superadmin/landing/berita') }}" class="menu-link">
+                                <div data-i18n="Connections">Blog & Berita</div>
+                            </a>
+                        </li>
+                        <li class="menu-item {{ Request::is('superadmin/landing/tanya*') ? 'active' : '' }}">
+                            <a href="{{ url('superadmin/landing/tanya') }}" class="menu-link">
+                                <div data-i18n="Connections">Pertanyaan?</div>
+                            </a>
+                        </li>
+                        <li class="menu-item {{ Request::is('superadmin/landing/struktur*') ? 'active' : '' }}">
+                            <a href="{{ url('superadmin/landing/struktur-pengurus') }}" class="menu-link">
+                                <div data-i18n="Connections">Struktur Pengurus</div>
+                            </a>
+                        </li>
+                        <li class="menu-item {{ Request::is('superadmin/landing/testi*') ? 'active' : '' }}">
+                            <a href="{{ url('superadmin/landing/testi') }}" class="menu-link">
+                                <div data-i18n="Connections">Testimoni</div>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
 
                 {{-- DATA MASTER PESAN --}}

@@ -75,8 +75,6 @@ class TempatController extends Controller
         $plotting = $query->orderBy('plottings.id', 'desc')->paginate($entries, ['*'], 'page', $page);
         $plotting->appends(['search' => $search, 'entries' => $entries, 'kecamatan' => $kecamatan, 'kelurahan' => $kelurahan]);
 
-        // dd($plotting);
-
         // Transformasi JSON
         foreach ($plotting as $item) {
             $item->Rt = json_decode($item->Rt, true) ? implode(' - ', json_decode($item->Rt, true)) : '-';
@@ -111,8 +109,8 @@ class TempatController extends Controller
     {
         // Validasi input
         $validator = Validator::make($request->all(), [
-            'id_kecamatan' => 'required|exists:db_kecamatans,id',
-            'id_kelurahan' => 'required|exists:db_kelurahans,id', // Pastikan hanya satu ID
+            'id_kecamatan' => 'nullable|exists:db_kecamatans,id',
+            'id_kelurahan' => 'nullable|exists:db_kelurahans,id', // Pastikan hanya satu ID
             'rt' => 'required|array',
             'rt.*' => 'required|regex:/^[0-9]{1,3}$/',
             'rw' => 'required|array',
@@ -178,19 +176,23 @@ class TempatController extends Controller
     public function editdata($id)
     {
         // Ambil data plotting berdasarkan ID
-        $plotting = Plotting::with('kelurahan')->findOrFail($id);
+        $plotting = Plotting::with('kecamatan', 'kelurahan')->findOrFail($id);
 
         // Ambil semua kecamatan
         $kecamatans = Db_kecamatan::all();
 
-        // Ambil ID kelurahan dari relasi
-        $kelurahanIds = $plotting->kelurahan->pluck('id')->toArray();
+        // Ambil kelurahan berdasarkan id_kecamatan dari plotting
+        $kelurahan = Db_kelurahan::where('id_kecamatan', $plotting->id_kecamatan)->get();
+
+        // Ambil ID kecamatan dan kelurahan yang dipilih
+        $pilihKec = $plotting->id_kecamatan;
+        $pilihKel = $plotting->id_kelurahan;
 
         // Decode JSON untuk RT dan RW
         $rts = json_decode($plotting->Rt, true) ?? [];
         $rws = json_decode($plotting->Rw, true) ?? [];
 
-        return view('kolektor.identitas.plotting.edit', compact('plotting', 'kecamatans', 'kelurahanIds', 'rts', 'rws'));
+        return view('kolektor.identitas.plotting.edit', compact('plotting', 'kecamatans', 'kelurahan', 'pilihKec', 'pilihKel', 'rts', 'rws'));
     }
 
     public function edit(Request $request, $id)
@@ -200,9 +202,8 @@ class TempatController extends Controller
 
         // Validasi input
         $validator = Validator::make($request->all(), [
-            'id_kecamatan' => 'required|exists:db_kecamatans,id',
-            'kelurahans' => 'required|array',
-            'kelurahans.*' => 'exists:db_kelurahans,id',
+            'id_kecamatan' => 'nullable|exists:db_kecamatans,id',
+            'id_kelurahan' => 'required|exists:db_kelurahans,id',
             'rt' => 'required|array',
             'rt.*' => 'required|regex:/^[0-9]{1,3}$/',
             'rw' => 'required|array',
@@ -218,19 +219,18 @@ class TempatController extends Controller
 
         // Ambil data dari request
         $kecamatanId = $request->input('id_kecamatan');
-        $kelurahanIds = $request->input('kelurahans');
+        $kelurahanId = $request->input('id_kelurahan');
         $rts = $request->input('rt');
         $rws = $request->input('rw');
 
-        // Pastikan jumlah RT dan RW sesuai dengan jumlah kelurahan
-        if (count($rts) !== count($rws) || count($rts) < count($kelurahanIds)) {
+        // Pastikan jumlah RT dan RW sesuai
+        if (count($rts) !== count($rws)) {
             Log::error('Jumlah RT/RW tidak sesuai', [
                 'rt_count' => count($rts),
                 'rw_count' => count($rws),
-                'kelurahan_count' => count($kelurahanIds),
             ]);
             return redirect()->back()
-                ->withErrors(['rt' => 'Jumlah RT dan RW tidak sesuai dengan jumlah kelurahan yang dipilih.'])
+                ->withErrors(['rt' => 'Jumlah RT dan RW tidak sesuai.'])
                 ->withInput();
         }
 
@@ -243,19 +243,17 @@ class TempatController extends Controller
             // Simpan data plotting
             $plotting->update([
                 'id_user' => Auth::id(),
-                'id_datadiri' => $dataDiri ?? null,
+                'id_datadiri' => $dataDiri ? $dataDiri->id : null,
                 'id_kecamatan' => $kecamatanId,
+                'id_kelurahan' => $kelurahanId, // Simpan id_kelurahan langsung
                 'Rt' => json_encode($rts),
                 'Rw' => json_encode($rws),
             ]);
 
-            // Sinkronkan kelurahan
-            $plotting->kelurahan()->sync($kelurahanIds);
-
             Log::info('Data plotting tersimpan', [
                 'plotting_id' => $plotting->id,
                 'kecamatan_id' => $kecamatanId,
-                'kelurahan_ids' => $kelurahanIds,
+                'kelurahan_id' => $kelurahanId,
                 'rt' => $rts,
                 'rw' => $rws,
             ]);

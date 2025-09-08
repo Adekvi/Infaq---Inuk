@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Kolektor\Transaksi;
 
 use App\Http\Controllers\Controller;
+use App\Models\Master\Penerimaan\Dataterima;
 use App\Models\Master\Plotting;
 use App\Models\Master\Wilayah\Db_kecamatan;
 use App\Models\Master\Wilayah\Db_kelurahan;
 use App\Models\Profil\Datadiri;
 use App\Models\Role\Transaksi\Penerimaan;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +29,7 @@ class PenerimaanController extends Controller
         // Query dasar untuk Penerimaan
         $query = Penerimaan::where('id_user', Auth::user()->id)
             ->where('status', 'Pending')
-            ->with(['user', 'plotting.kecamatan', 'plotting.kelurahan']);
+            ->with(['user', 'plotting.kecamatan', 'plotting.kelurahan', 'dataterima']);
 
         // Filter berdasarkan pencarian
         if ($search) {
@@ -126,10 +128,56 @@ class PenerimaanController extends Controller
 
         // dd($plotting);
 
+        $dataterima = Dataterima::where('id', $idUser)->first();
+
+        // dd($dataterima);
+
         // Ambil kecamatan yang ada plottingnya
         $kecamatans = $plotting->groupBy('id_kecamatan');
 
-        return view('kolektor.transaksi.penerimaan.tambah', compact('kecamatans'));
+        return view('kolektor.transaksi.penerimaan.tambah', compact('kecamatans', 'dataterima'));
+    }
+
+    public function searchNoAlat(Request $request)
+    {
+        $search = $request->get('q');
+
+        $results = Dataterima::where('no_alat', 'like', "%{$search}%")
+            ->select('id', 'no_alat', 'nama_donatur')
+            ->limit(20)
+            ->get();
+
+        return response()->json(
+            $results->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'text' => $item->no_alat, // hanya tampilkan no_alat
+                    'no_alat' => $item->no_alat,
+                    'nama_donatur' => $item->nama_donatur
+                ];
+            })
+        );
+    }
+
+    public function searchNamaDonatur(Request $request)
+    {
+        $search = $request->get('q');
+
+        $results = Dataterima::where('nama_donatur', 'like', "%{$search}%")
+            ->select('id', 'no_alat', 'nama_donatur')
+            ->limit(20)
+            ->get();
+
+        return response()->json(
+            $results->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'text' => $item->nama_donatur, // hanya tampilkan nama_donatur
+                    'no_alat' => $item->no_alat,
+                    'nama_donatur' => $item->nama_donatur
+                ];
+            })
+        );
     }
 
     // API AJAX untuk ambil kelurahan berdasarkan kecamatan
@@ -157,6 +205,7 @@ class PenerimaanController extends Controller
 
     public function tambah(Request $request)
     {
+        // dd($request->all());
         // Validasi input
         $validated = $request->validate([
             'kecamatan' => 'required|exists:db_kecamatans,id',
@@ -169,14 +218,14 @@ class PenerimaanController extends Controller
             'tglSetor' => 'nullable|date',
             'namaBank' => 'nullable|string|max:255',
             'Rekening' => 'nullable|integer',
+            'no_alat' => 'required|string|max:255',
+            'nama_donatur' => 'required|string|max:255',
         ]);
 
-        // Cek jumlah array RT, RW, dan nominal
         if (count($request->Rt) !== count($request->Rw) || count($request->Rt) !== count($request->nominal)) {
             return back()->withErrors(['error' => 'Jumlah RT, RW, dan Nominal tidak sesuai'])->withInput();
         }
 
-        // Validasi total nominal
         $totalNominal = array_sum(array_map('floatval', $request->nominal));
         if ($totalNominal != $request->jumlah) {
             return back()->withErrors(['jumlah' => 'Jumlah tidak sesuai dengan total nominal'])->withInput();
@@ -185,35 +234,25 @@ class PenerimaanController extends Controller
         $id_user = Auth::id();
         $dataDiri = Datadiri::where('id_user', $id_user)->first();
 
-        // 🔹 Cek apakah plotting untuk user + kecamatan + kelurahan sudah ada
-        $plotting = Plotting::where('id_user', $id_user)
-            ->where('id_kecamatan', $request->kecamatan)
-            ->where('id_kelurahan', $request->kelurahan)
-            ->first();
-
-        // Kalau belum ada → buat baru (RT/RW di-JSON-kan semua dari input)
-        if (!$plotting) {
-            $plotting = Plotting::create([
+        // Cek / buat plotting
+        $plotting = Plotting::firstOrCreate(
+            [
                 'id_user' => $id_user,
-                'id_datadiri' => $dataDiri->id ?? null,
                 'id_kecamatan' => $request->kecamatan,
                 'id_kelurahan' => $request->kelurahan,
+            ],
+            [
+                'id_datadiri' => $dataDiri->id ?? null,
                 'Rt' => json_encode($request->Rt),
                 'Rw' => json_encode($request->Rw),
-            ]);
-        } else {
+            ]
+        );
+
+        if (!$plotting->wasRecentlyCreated) {
             $existingRt = json_decode($plotting->Rt, true) ?? [];
             $existingRw = json_decode($plotting->Rw, true) ?? [];
-
-            // Gabungkan & hilangkan duplikat
-            $mergedRt = array_unique(array_merge($existingRt, $request->Rt));
-            $mergedRw = array_unique(array_merge($existingRw, $request->Rw));
-
-            // Reset index agar array numerik murni
-            $mergedRt = array_values($mergedRt);
-            $mergedRw = array_values($mergedRw);
-
-            // Simpan lagi
+            $mergedRt = array_values(array_unique(array_merge($existingRt, $request->Rt)));
+            $mergedRw = array_values(array_unique(array_merge($existingRw, $request->Rw)));
             $plotting->update([
                 'Rt' => json_encode($mergedRt, JSON_UNESCAPED_UNICODE),
                 'Rw' => json_encode($mergedRw, JSON_UNESCAPED_UNICODE),
@@ -226,11 +265,58 @@ class PenerimaanController extends Controller
             $bukti_foto_path = $request->file('bukti_foto')->store('bukti_foto', 'public');
         }
 
-        // 🔹 Simpan ke penerimaan (satu baris per RT/RW)
+        // 🔹 Handle dataterima berdasarkan no_alat atau nama_donatur
+        $id_terima = null;
+        if ($request->no_alat || $request->nama_donatur) {
+            $dataterima = Dataterima::where(function ($query) use ($request) {
+                if ($request->no_alat) {
+                    $query->where('no_alat', $request->no_alat);
+                }
+                if ($request->nama_donatur) {
+                    $query->orWhere('nama_donatur', $request->nama_donatur);
+                }
+            })->first();
+
+            // Ambil nama kelurahan berdasarkan id_kelurahan
+            $kelurahan = Db_kelurahan::find($request->kelurahan); // Pastikan model Kelurahan sudah ada
+            $nama_kelurahan = $kelurahan ? $kelurahan->nama_kelurahan : null;
+
+            if (!$dataterima) {
+                // Jika tidak ada, buat data baru
+                $dataterima = Dataterima::create([
+                    'no_alat' => $request->no_alat,
+                    'nama_donatur' => $request->nama_donatur,
+                    'nominal' => array_sum(array_map('floatval', $request->nominal)), // Total nominal dari array
+                    'jenis' => 'INUK',
+                    'tgl' => Carbon::now()->format('Y-m-d'), // Format tanggal yang benar
+                    'alamat' => $nama_kelurahan, // Simpan nama kelurahan sebagai alamat
+                ]);
+            } else {
+                // Jika ada tapi kolomnya belum lengkap, update datanya
+                $updateData = [];
+                if (!$dataterima->no_alat && $request->no_alat) {
+                    $updateData['no_alat'] = $request->no_alat;
+                }
+                if (!$dataterima->nama_donatur && $request->nama_donatur) {
+                    $updateData['nama_donatur'] = $request->nama_donatur;
+                }
+                if (!$dataterima->alamat && $nama_kelurahan) {
+                    $updateData['alamat'] = $nama_kelurahan; // Update alamat jika kosong
+                }
+                if (!empty($updateData)) {
+                    $dataterima->update($updateData);
+                }
+            }
+
+            $id_terima = $dataterima->id;
+        }
+
         foreach ($request->nominal as $index => $nominal) {
             $penerimaan = [
                 'id_user' => $id_user,
                 'id_plot' => $plotting->id,
+                'id_terima' => $id_terima, // Tambahkan ini (bisa null jika tidak ada input)
+                'nama_donatur' => $request->nama_donatur, // Simpan nama_donatur di sini juga
                 'Rt' => $request->Rt[$index],
                 'Rw' => $request->Rw[$index],
                 'nominal' => $nominal,
@@ -252,19 +338,22 @@ class PenerimaanController extends Controller
 
     public function editdata(Request $request, $id)
     {
-        // Ambil data penerimaan berdasarkan id_user dan id
-        $penerimaan = Penerimaan::where('id_user', Auth::id())
+        $id_user = Auth::id();
+
+        // Ambil data penerimaan yang ingin diedit
+        $penerimaan = Penerimaan::where('id_user', $id_user)
             ->where('id', $id)
-            ->with(['plotting.kecamatan', 'plotting.kelurahan'])
+            ->with(['plotting.kecamatan', 'plotting.kelurahan', 'dataterima'])
             ->first();
 
         if (!$penerimaan) {
             return redirect()->route('kolektor.input.infaq')->with('error', 'Data penerimaan tidak ditemukan.');
         }
 
-        // Ambil semua record penerimaan terkait id_plot dan id_user
-        $penerimaans = Penerimaan::where('id_user', Auth::id())
+        // Ambil semua penerimaan dengan id_plot sama dan id_terima sama
+        $penerimaans = Penerimaan::where('id_user', $id_user)
             ->where('id_plot', $penerimaan->id_plot)
+            ->where('id_terima', $penerimaan->id_terima)
             ->get();
 
         return view('kolektor.transaksi.penerimaan.edit', compact('penerimaan', 'penerimaans'));
@@ -272,7 +361,6 @@ class PenerimaanController extends Controller
 
     public function edit(Request $request, $id)
     {
-        // Validasi input
         $validated = $request->validate([
             'Rt.*' => 'required|string|max:255',
             'Rw.*' => 'required|string|max:255',
@@ -282,9 +370,10 @@ class PenerimaanController extends Controller
             'tglSetor' => 'nullable|date',
             'namaBank' => 'nullable|string|max:255',
             'Rekening' => 'nullable|integer',
+            'no_alat' => 'required|string|max:255',
+            'nama_donatur' => 'required|string|max:255',
         ]);
 
-        // Validasi jumlah elemen array Rt, Rw, dan nominal
         $rtCount = count($request->Rt);
         $rwCount = count($request->Rw);
         $nominalCount = count($request->nominal);
@@ -292,54 +381,94 @@ class PenerimaanController extends Controller
             return redirect()->back()->withErrors(['error' => 'Jumlah RT, RW, dan Nominal tidak sesuai.'])->withInput();
         }
 
-        // Validasi total jumlah
         $totalNominal = array_sum(array_map('floatval', $request->nominal));
         if ($totalNominal != $request->jumlah) {
             return redirect()->back()->withErrors(['jumlah' => 'Jumlah tidak sesuai dengan total nominal.'])->withInput();
         }
 
-        // Ambil id_user dan id_plot
         $id_user = Auth::id();
         $penerimaan = Penerimaan::where('id_user', $id_user)->where('id', $id)->first();
         if (!$penerimaan) {
             return redirect()->back()->with('error', 'Data penerimaan tidak ditemukan.');
         }
+
         $id_plot = $penerimaan->id_plot;
 
-        // Hapus semua record lama terkait id_plot dan id_user
-        $oldPenerimaans = Penerimaan::where('id_user', $id_user)->where('id_plot', $id_plot)->get();
-        foreach ($oldPenerimaans as $old) {
-            if ($old->bukti_foto) {
-                Storage::disk('public')->delete($old->bukti_foto);
-            }
-            $old->delete();
+        // 🔹 Handle dataterima berdasarkan no_alat atau nama_donatur
+        $dataterima = Dataterima::where('no_alat', $request->no_alat)
+            ->orWhere('nama_donatur', $request->nama_donatur)
+            ->first();
+
+        if (!$dataterima) {
+            $dataterima = Dataterima::create([
+                'no_alat' => $request->no_alat,
+                'nama_donatur' => $request->nama_donatur,
+            ]);
         }
 
+        $id_terima = $dataterima->id;
+
+        // 🔹 Ambil semua record lama untuk id_plot & id_terima
+        $oldPenerimaans = Penerimaan::where('id_user', $id_user)
+            ->where('id_plot', $id_plot)
+            ->where('id_terima', $id_terima)
+            ->get();
+
         // Handle upload file bukti_foto
-        $bukti_foto_path = $penerimaan->bukti_foto;
+        $bukti_foto_path = $oldPenerimaans->first()?->bukti_foto ?? null;
         if ($request->hasFile('bukti_foto')) {
-            // Hapus file lama jika ada
             if ($bukti_foto_path) {
                 Storage::disk('public')->delete($bukti_foto_path);
             }
             $bukti_foto_path = $request->file('bukti_foto')->store('bukti_foto', 'public');
         }
 
-        // Simpan data baru
         foreach ($request->nominal as $index => $nominal) {
-            Penerimaan::create([
-                'id_user' => $id_user,
-                'id_plot' => $id_plot,
-                'Rt' => $request->Rt[$index],
-                'Rw' => $request->Rw[$index],
-                'nominal' => $nominal,
-                'jumlah' => $request->jumlah,
-                'bukti_foto' => $bukti_foto_path,
-                'tglSetor' => $request->tglSetor,
-                'namaBank' => $request->namaBank,
-                'Rekening' => $request->Rekening,
-                'status' => 'Pending',
-            ]);
+            if (isset($oldPenerimaans[$index])) {
+                // Update data lama
+                $old = $oldPenerimaans[$index];
+                $old->update([
+                    'Rt' => $request->Rt[$index],
+                    'Rw' => $request->Rw[$index],
+                    'nominal' => $nominal,
+                    'jumlah' => $request->jumlah,
+                    'bukti_foto' => $bukti_foto_path,
+                    'tglSetor' => $request->tglSetor,
+                    'namaBank' => $request->namaBank,
+                    'Rekening' => $request->Rekening,
+                    'status' => 'Pending',
+                    'id_terima' => $id_terima,
+                    'nama_donatur' => $request->nama_donatur,
+                ]);
+            } else {
+                // Tambah data baru jika input lebih banyak
+                Penerimaan::create([
+                    'id_user' => $id_user,
+                    'id_plot' => $id_plot,
+                    'id_terima' => $id_terima,
+                    'nama_donatur' => $request->nama_donatur,
+                    'Rt' => $request->Rt[$index],
+                    'Rw' => $request->Rw[$index],
+                    'nominal' => $nominal,
+                    'jumlah' => $request->jumlah,
+                    'bukti_foto' => $bukti_foto_path,
+                    'tglSetor' => $request->tglSetor,
+                    'namaBank' => $request->namaBank,
+                    'Rekening' => $request->Rekening,
+                    'status' => 'Pending',
+                ]);
+            }
+        }
+
+        // 🔹 Hapus data lama jika jumlah input sekarang lebih sedikit
+        if (count($oldPenerimaans) > count($request->nominal)) {
+            for ($i = count($request->nominal); $i < count($oldPenerimaans); $i++) {
+                $oldPenerians = $oldPenerimaans[$i];
+                if ($oldPenerians->bukti_foto) {
+                    Storage::disk('public')->delete($oldPenerians->bukti_foto);
+                }
+                $oldPenerians->delete();
+            }
         }
 
         return redirect()->route('kolektor.input.infaq');

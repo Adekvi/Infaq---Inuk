@@ -38,6 +38,8 @@ class HomeController extends Controller
             $struktur->humas_array = $struktur->humas ? explode('|', $struktur->humas) : [];
         }
 
+        // dd($struktur);
+
         // DONASI
         $currentYear = now()->year;
         $currentMonth = now()->month;  // Tidak digunakan, tapi simpan jika perlu
